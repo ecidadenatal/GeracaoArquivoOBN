@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <plugin name="GeracaoArquivoOBN" label="Geracao Arquivo OBN" plugin-version="1.0" ecidade-version="2.3.39" id-modulo="39">
+    <id id="GeracaoArquivoOBN"> </id>
+    <files>
+
+      <!-- classe -->
+      <file name="db_empagemovtipotransmissaofatura_classe.php"    path="/classes/db_empagemovtipotransmissaofatura_classe.php" />
+      <file name="db_empagedadosretmovocorrenciaobservacao_classe.php"    path="/classes/db_empagedadosretmovocorrenciaobservacao_classe.php" />
+      <file name="db_empagedadosretarquivo_classe.php"    path="/classes/db_empagedadosretarquivo_classe.php" />
+      <file name="db_arquivoobngerado_classe.php"    path="/classes/db_arquivoobngerado_classe.php" />
+      <file name="db_PluginGeracaoArquivoOBN_classe.php"    path="/classes/db_PluginGeracaoArquivoOBN_classe.php" />
+
+
+      <!-- outro -->
+      <file name="GeracaoArquivoOBN.xml"    path="/modification/xml/GeracaoArquivoOBN.xml" />
+      <file name="emp4_pluginGeracaoArquivoOBNArquivosProcessados001.php" path="/emp4_pluginGeracaoArquivoOBNArquivosProcessados001.php" />
+      <file name="func_pluginGeracaoArquivoOBNArquivosProcessados.php" path="/func_pluginGeracaoArquivoOBNArquivosProcessados.php" />
+      <file name="emp2_pluginGeracaoArquivoOBNRelatorioArquivosGerados002.php"    path="/emp2_pluginGeracaoArquivoOBNRelatorioArquivosGerados002.php" />
+      <file name="plugins.empagemovtipotransmissaofatura.dd.xml"    path="/dd/tabelas/plugins.empagemovtipotransmissaofatura.dd.xml" />
+      <file name="plugins.empagedadosretmovocorrenciaobservacao.dd.xml"    path="/dd/tabelas/plugins.empagedadosretmovocorrenciaobservacao.dd.xml" />
+      <file name="plugins.empagedadosretarquivo.dd.xml"    path="/dd/tabelas/plugins.empagedadosretarquivo.dd.xml" />
+      <file name="plugins.arquivoobngerado.dd.xml"    path="/dd/tabelas/plugins.arquivoobngerado.dd.xml" />
+      <file name="cai4_emissaoarquivoobn001.php"    path="/cai4_emissaoarquivoobn001.php" />
+
+    </files>
+    <estrutura install="/instalacao.sql" uninstall="/desinstalacao.sql" >
+    </estrutura>
+    
+    <dependencies>
+      <plugin name="SlipDepartamento" version="1.0" />
+    </dependencies>
+  
+  </plugin>
+</manifest>
