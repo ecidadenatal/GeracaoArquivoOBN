@@ -1,0 +1,57 @@
+<?xml version="1.0" standalone="yes" ?>
+<table name="plugins.arquivoobngerado" description="Guarda códigos de Arquivos OBN Gerados" prefix="" label="Arquivo OBN Gerado" type="0">
+ <fields>
+    <field name="sequencial"
+           conteudo="int4"
+           description="Sequencial"
+           inivalue="0"
+           label="Sequencial"
+           size="10"
+           null="f"
+           uppercase="f"
+           autocompl="f"
+           aceitatipo="1"
+           tipoobj="text"
+           labelrel="Sequencial"
+           reference=""
+           ispk="t"
+           hassequence="t">
+      <sequence name="plugins.arquivoobngerado_sequencial_seq"></sequence>
+    </field>
+    <field name="codgera"
+           conteudo="int4"
+           description="CodGera"
+           inivalue="0"
+           label="CodGera"
+           size="10"
+           null="f"
+           uppercase="f"
+           autocompl="f"
+           aceitatipo="1"
+           tipoobj="text"
+           labelrel="CodGera"
+           reference=""
+           ispk="f"
+           hassequence="f">
+    </field>
+    <field name="datagera"
+           conteudo="date"
+           description="DataGera"
+           inivalue="null"
+           label="DataGera"
+           size="10"
+           null="f"
+           uppercase="f"
+           autocompl="f"
+           aceitatipo="0"
+           tipoobj="text"
+           labelrel="DataGera"
+           reference=""
+           ispk="f"
+           hassequence="f">
+    </field>
+  </fields>
+  <primarykey>
+    <fieldpk name="sequencial"></fieldpk>
+  </primarykey>
+</table>

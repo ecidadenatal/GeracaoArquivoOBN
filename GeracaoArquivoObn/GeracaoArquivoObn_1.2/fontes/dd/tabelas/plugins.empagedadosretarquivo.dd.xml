@@ -1,0 +1,89 @@
+<?xml version="1.0" standalone="yes" ?>
+<table name="plugins.empagedadosretarquivo" description="Guarda o nome do arquivo processado o retorno dos pagamentos da agenda" prefix="" label="Arquivo processado no retorno da agenda" type="0">
+  <fields>
+    <field name="sequencial"
+           conteudo="int4"
+           description="Sequencial"
+           inivalue="0"
+           label="Sequencial"
+           size="10"
+           null="f"
+           uppercase="f"
+           autocompl="f"
+           aceitatipo="1"
+           tipoobj="text"
+           labelrel="Sequencial"
+           reference=""
+           ispk="t"
+           hassequence="t">
+      <sequence name="plugins.empagedadosretarquivo_sequencial_seq"></sequence>
+    </field>
+    <field name="empagedadosret"
+           conteudo="int4"
+           description="Sequencia da tabela de arquivo de retorno."
+           inivalue="0"
+           label="Retorno"
+           size="10"
+           null="f"
+           uppercase="f"
+           autocompl="f"
+           aceitatipo="1"
+           tipoobj="text"
+           labelrel="Retorno"
+           reference=""
+           ispk="f"
+           hassequence="f">
+    </field>
+    <field name="usuario"
+           conteudo="int4"
+           description="Usuario."
+           inivalue="0"
+           label="Usuario"
+           size="10"
+           null="f"
+           uppercase="f"
+           autocompl="f"
+           aceitatipo="1"
+           tipoobj="text"
+           labelrel="Usuario"
+           reference=""
+           ispk="f"
+           hassequence="f">
+    </field>
+    <field name="data"
+           conteudo="date"
+           description="Data do processamento arquivo de retorno."
+           inivalue="0"
+           label="Data Processamento"
+           size="10"
+           null="f"
+           uppercase="f"
+           autocompl="f"
+           aceitatipo="0"
+           tipoobj="text"
+           labelrel="Data Processamento"
+           reference=""
+           ispk="f"
+           hassequence="f">
+    </field>
+    <field name="arquivo"
+           conteudo="text"
+           description="Arquivo"
+           inivalue="0"
+           label="Arquivo"
+           size="100"
+           null="t"
+           uppercase="f"
+           autocompl="f"
+           aceitatipo="0"
+           tipoobj="text"
+           labelrel="Arquivo"
+           reference=""
+           ispk="f"
+           hassequence="f">
+    </field>
+  </fields>
+  <primarykey>
+    <fieldpk name="sequencial"></fieldpk>
+  </primarykey>
+</table>
