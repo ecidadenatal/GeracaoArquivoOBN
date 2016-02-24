@@ -1,0 +1,14 @@
+# Compactados #
+###############
+*.gz
+*.tar
+*.tar.gz
+GeracaoArquivoObn_1.1/*.tar.gz
+GeracaoArquivoObn_1.1/*.tar
+GeracaoArquivoObn_1.1/*.gz
+GeracaoArquivoObn_1.2/*.tar.gz
+GeracaoArquivoObn_1.2/*.tar
+GeracaoArquivoObn_1.2/*.gz
+GeracaoArquivoObn_1.3/*.tar.gz
+GeracaoArquivoObn_1.3/*.tar
+GeracaoArquivoObn_1.3/*.gz
