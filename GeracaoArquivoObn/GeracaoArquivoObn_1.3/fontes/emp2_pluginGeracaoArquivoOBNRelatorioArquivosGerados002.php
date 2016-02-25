@@ -117,7 +117,15 @@ $sqlOrdem = "
 	  pc63_dataconf,
 	  e60_codemp,
 	  e82_codord,
-	  fc_valorretencaomov(e81_codmov, false) as vlrretencao,
+	  (select coalesce(sum(e23_valorretencao),0)::numeric as valorRetido                   
+             from retencaoreceitas                                                            
+                  inner join retencaopagordem  on e23_retencaopagordem = e20_sequencial       
+                  inner join retencaotiporec   on e23_retencaotiporec  = e21_sequencial       
+                  inner join pagordemnota      on e20_pagordem         = e71_codord           
+                  inner join retencaoempagemov on e27_retencaoreceitas = e23_sequencial       
+            where e27_empagemov = e81_codmov                                                 
+              and e23_ativo     is true                                                        
+              and e27_principal is true) as vlrretencao,
 	case when fatura = 't' then 2 else 1 end as comfatura,
 	e74_codigodebarra as codigobarras,
         null::integer as slipvinculo
