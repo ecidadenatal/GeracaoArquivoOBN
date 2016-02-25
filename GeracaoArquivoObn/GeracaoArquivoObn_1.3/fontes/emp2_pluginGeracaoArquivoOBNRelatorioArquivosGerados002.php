@@ -90,8 +90,26 @@ $sqlOrdem = "
 	  pc63_conta::varchar,
 	  pc63_contabanco::varchar,
       coalesce(pc63_conta_dig,'0') as pc63_conta_dig,
-	  translate(to_char(round(e81_valor- coalesce(fc_valorretencaomov(e81_codmov,false),0),2),'99999999999.99'),'.','') as valor,
-	  e81_valor- coalesce(fc_valorretencaomov(e81_codmov,false),0) as valorori,
+	  translate(to_char(round(e81_valor- coalesce((
+        select coalesce(sum(e23_valorretencao),0)::numeric as valorRetido                   
+             from retencaoreceitas                                                            
+                  inner join retencaopagordem  on e23_retencaopagordem = e20_sequencial       
+                  inner join retencaotiporec   on e23_retencaotiporec  = e21_sequencial       
+                  inner join pagordemnota      on e20_pagordem         = e71_codord           
+                  inner join retencaoempagemov on e27_retencaoreceitas = e23_sequencial       
+            where e27_empagemov = e81_codmov                                                 
+              and e23_ativo     is true                                                        
+              and e27_principal is true),0),2),'99999999999.99'),'.','') as valor,
+    e81_valor- coalesce((
+        select coalesce(sum(e23_valorretencao),0)::numeric as valorRetido                   
+             from retencaoreceitas                                                            
+                  inner join retencaopagordem  on e23_retencaopagordem = e20_sequencial       
+                  inner join retencaotiporec   on e23_retencaotiporec  = e21_sequencial       
+                  inner join pagordemnota      on e20_pagordem         = e71_codord           
+                  inner join retencaoempagemov on e27_retencaoreceitas = e23_sequencial       
+            where e27_empagemov = e81_codmov                                                 
+              and e23_ativo     is true                                                        
+              and e27_principal is true),0) as valorori,
 	  case when  pc63_banco = c63_banco then '01' else '03' end as  lanc,
 	  coalesce(pc63_banco,'000') as pc63_banco,
 	  e83_convenio as convenio,
@@ -117,7 +135,8 @@ $sqlOrdem = "
 	  pc63_dataconf,
 	  e60_codemp,
 	  e82_codord,
-	  (select coalesce(sum(e23_valorretencao),0)::numeric as valorRetido                   
+	  (
+        select coalesce(sum(e23_valorretencao),0)::numeric as valorRetido                   
              from retencaoreceitas                                                            
                   inner join retencaopagordem  on e23_retencaopagordem = e20_sequencial       
                   inner join retencaotiporec   on e23_retencaotiporec  = e21_sequencial       
@@ -178,8 +197,26 @@ $sqlOrdem = "
     coalesce((case when pc63_conta_dig is null then descrconta.c63_dvconta
      else pc63_conta_dig end ),'0')::varchar as pc63_conta_dig,
 
-	  translate(to_char(round(e81_valor - coalesce(fc_valorretencaomov(e81_codmov,false),0),2),'99999999999.99'),'.','') as valor,
-	  e81_valor - coalesce(fc_valorretencaomov(e81_codmov,false),0) as valorori,
+    translate(to_char(round(e81_valor- coalesce((
+        select coalesce(sum(e23_valorretencao),0)::numeric as valorRetido                   
+             from retencaoreceitas                                                            
+                  inner join retencaopagordem  on e23_retencaopagordem = e20_sequencial       
+                  inner join retencaotiporec   on e23_retencaotiporec  = e21_sequencial       
+                  inner join pagordemnota      on e20_pagordem         = e71_codord           
+                  inner join retencaoempagemov on e27_retencaoreceitas = e23_sequencial       
+            where e27_empagemov = e81_codmov                                                 
+              and e23_ativo     is true                                                        
+              and e27_principal is true),0),2),'99999999999.99'),'.','') as valor,
+    e81_valor- coalesce((
+        select coalesce(sum(e23_valorretencao),0)::numeric as valorRetido                   
+             from retencaoreceitas                                                            
+                  inner join retencaopagordem  on e23_retencaopagordem = e20_sequencial       
+                  inner join retencaotiporec   on e23_retencaotiporec  = e21_sequencial       
+                  inner join pagordemnota      on e20_pagordem         = e71_codord           
+                  inner join retencaoempagemov on e27_retencaoreceitas = e23_sequencial       
+            where e27_empagemov = e81_codmov                                                 
+              and e23_ativo     is true                                                        
+              and e27_principal is true),0) as valorori,
 	  case when  (pc63_banco = conplanoconta.c63_banco or descrconta.c63_banco = conplanoconta.c63_banco)
 	       then '01' else '03' end as  lanc,
 
@@ -413,15 +450,16 @@ for($i =0 ; $i < $numrows_empagegera;$i++) {
 
     $pdf->cell(55,$alt,"Origem",1,0,"C",1);
     $pdf->cell(224,$alt,"Favorecido",1,1,"C",1);
-    $pdf->cell(25,$alt, 'Documento',1,0,"C",0);
+    $pdf->cell(18,$alt, 'Documento',1,0,"C",0);
     $pdf->cell(15,$alt,"Agencia",1,0,"C",0);
     $pdf->cell(15,$alt,"Conta",1,0,"C",0);
     $pdf->cell(10,$alt,"Tipo",1,0,"C",0);
-    $pdf->cell(99,$alt,$RLz01_nome,1,0,"C",0);
-    $pdf->cell(30,$alt,$RLz01_cgccpf,1,0,"C",0);
+    $pdf->cell(91,$alt,$RLz01_nome,1,0,"C",0);
+    $pdf->cell(25,$alt,$RLz01_cgccpf,1,0,"C",0);
     $pdf->cell(15,$alt,$RLpc63_banco,1,0,"C",0);
     $pdf->cell(15,$alt,$RLpc63_agencia,1,0,"C",0);
     $pdf->cell(20,$alt,$RLpc63_conta,1,0,"C",0);
+    $pdf->cell(20,$alt,"OP/Slip",1,0,"C",0);
     $pdf->cell(25,$alt,"Valor (R$)",1,0,"C",0);
     $pdf->cell(10,$alt,"Canc.",1,1,"C",0);
   }
@@ -467,7 +505,7 @@ for($i =0 ; $i < $numrows_empagegera;$i++) {
     $pc63_conta_dig = "-".$pc63_conta_dig;
   }
   $pdf->setfont('arial','',7);
-  $pdf->cell(25,$alt,$e81_codmov,1,0,"C",0);
+  $pdf->cell(18,$alt,$e81_codmov,1,0,"C",0);
   $pdf->cell(15,$alt,$c63_agencia.'-'.$c63_dvagencia,1,0,"C",0);
   $pdf->cell(15,$alt,$c63_conta.'-'.$c63_dvconta,1,0,"C",0);
   $pdf->cell(10,$alt,$tipooperacao,1,0,"C",0);
@@ -478,12 +516,13 @@ for($i =0 ; $i < $numrows_empagegera;$i++) {
     $asteriscos = "** ";
   }
 
-  $pdf->cell(99,$alt,$asteriscos.$z01_nome,1,0,"L",0);
-  $pdf->cell(30,$alt,$cnpj,1,0,"C",0);
+  $pdf->cell(91,$alt,$asteriscos.$z01_nome,1,0,"L",0);
+  $pdf->cell(25,$alt,$cnpj,1,0,"C",0);
 
   $pdf->cell(15,$alt,$pc63_banco,1,0,"C",0);
   $pdf->cell(15,$alt,$pc63_agencia.$pc63_agencia_dig,1,0,"C",0);
   $pdf->cell(20,$alt,$pc63_conta.$pc63_conta_dig,1,0,"C",0);
+  $pdf->cell(20,$alt,$e82_codord,1,0,"C",0); 
   $pdf->cell(25,$alt,db_formatar($e81_valor,'f'),1,0,"C",0);
   $pdf->cell(10,$alt,"(     )",1,1,"C",0);
 
