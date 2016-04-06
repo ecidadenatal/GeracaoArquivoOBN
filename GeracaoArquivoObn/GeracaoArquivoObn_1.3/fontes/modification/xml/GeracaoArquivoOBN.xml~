@@ -243,7 +243,7 @@ exit;
       $oDaoEmpAgeDadosRetArquivo->arquivo = substr($this->sCaminhoArquivo, (strripos($this->sCaminhoArquivo, "/")+1)) ;
       $oDaoEmpAgeDadosRetArquivo->incluir();
       if ($oDaoEmpAgeDadosRetArquivo->erro_status == "0") {
-         throw new BusinessException("[Erro 3.0] N\E3o foi poss\EDvel salvar o nome do arquivo processado. - {$oDaoEmpAgeDadosRetArquivo->erro_msg}");
+         throw new BusinessException("[Erro 3.0] Não foi possível salvar o nome do arquivo processado. - {$oDaoEmpAgeDadosRetArquivo->erro_msg}");
       } 
        ]]>
       </add>
@@ -268,7 +268,7 @@ exit;
             $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->observacao = $this->oRegistroArquivo->registros[0]->observacao;
             $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->incluir();
             if ($oDaoEmpAgeDadosRetMovOcorrencia->erro_status == "0") {
-                throw new BusinessException("[Erro 3.1] N\E3o foi poss\EDvel salvar a ocorr\EAncia para o movimento {$iCodigoMovimentoNaoRetornado}. - {$oDaoEmpAgeDadosRetMovOcorrenciaObservacao->erro_msg}");
+                throw new BusinessException("[Erro 3.1] Não foi possível salvar a ocorrência para o movimento {$iCodigoMovimentoNaoRetornado}. - {$oDaoEmpAgeDadosRetMovOcorrenciaObservacao->erro_msg}");
             }
           }
         ]]>
@@ -284,7 +284,7 @@ exit;
         $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->observacao = "{$oMovimentoRetorno->observacao}";
         $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->incluir();
         if ($oDaoEmpAgeDadosRetMovOcorrenciaObservacao->erro_status == "0") {
-          throw new BusinessException("[Erro 6.1] N\E3o foi poss\EDvel salvar a ocorr\EAncia para o movimento {$iCodigoMovimento} - $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->erro_msg");
+          throw new BusinessException("[Erro 6.1] Não foi possível salvar a ocorrência para o movimento {$iCodigoMovimento} - $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->erro_msg");
         }
       }
         ]]>
@@ -371,7 +371,7 @@ exit;
       <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte0] */]]></search>
       <add position="after">
         <![CDATA[
-                var faturaAnexo = (oDado.fatura == "t") ? "Sim" : "N\E3o";
+                var faturaAnexo = (oDado.fatura == "t") ? "Sim" : "Não";
         ]]>
       </add>
     </operation>
@@ -382,7 +382,7 @@ exit;
       <add position="replace">
         <![CDATA[
                /* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte1] */
-                aRow[6] = (oDado.fatura == "t") ? "Sim" : "N\E3o";
+                aRow[6] = (oDado.fatura == "t") ? "Sim" : "Não";
                 aRow[7] = "<input type='button' value='Editar' onclick='js_criaJanelaDetalhes("+oDado.e81_codmov+", "+oDado.o15_codigo+");'  ";
         ]]>
       </add>
@@ -394,7 +394,7 @@ exit;
       <add position="replace">
         <![CDATA[
              /* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte2] */
-              aRow[6] = (oDado.fatura == "t") ? "Sim" : "N\E3o";
+              aRow[6] = (oDado.fatura == "t") ? "Sim" : "Não";
               aRow[7] = "<input type='button' value='Editar' onclick='js_criaJanelaDetalhes("+oDado.e81_codmov+", "+oDado.c61_codigo+");'  ";
          
               aValoresMovimentos[oDado.e81_codmov] = oDado.k17_valor;
@@ -429,13 +429,13 @@ exit;
                                             'right',
                                             'center'
                                            ));
-  oGridConfiguracao.setHeader(new Array( 'C\F3d.Mov',
+  oGridConfiguracao.setHeader(new Array( 'Cód.Mov',
                                          'Emp. / Slip',
                                          'Recurso',
                                          'Cta. Pagadora',
                                          'Nome',
                                          'Valor',
-                                         'A\E7\E3o'
+                                         'Ação'
                                         ));]]></search>
       <add position="replace">
         <![CDATA[
@@ -458,14 +458,14 @@ exit;
                                                    'center',
                                                    'center'
                                                   ));
-         oGridConfiguracao.setHeader(new Array( 'C\F3d.Mov',
+         oGridConfiguracao.setHeader(new Array( 'Cód.Mov',
                                                 'Emp. / Slip',
                                                 'Recurso',
                                                 'Cta. Pagadora',
                                                 'Nome',
                                                 'Valor',
                                                 'Fatura Anexo',
-                                                'A\E7\E3o'
+                                                'Ação'
                                                ));
         ]]>
       </add>
@@ -481,7 +481,7 @@ exit;
       sConteudoDetalhes += "        </td>  ";
       sConteudoDetalhes += "        <td align='left'>   ";
       sConteudoDetalhes += "           <select id='iFatura' name='iFatura' style='width:100px;' >";
-      sConteudoDetalhes += "             <option value='f'>N\E3o</option>           ";
+      sConteudoDetalhes += "             <option value='f'>Não</option>           ";
       sConteudoDetalhes += "             <option value='t'>Sim</option>         ";
       sConteudoDetalhes += "           </select>";
       sConteudoDetalhes += "        </td>  ";
@@ -593,7 +593,7 @@ exit;
       <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte2] */]]></search>
       <add position="after">
         <![CDATA[
-    // Se o Movimento estiver marcado como fatura (Sim = t) ent\E3o tipo = 33
+    // Se o Movimento estiver marcado como fatura (Sim = t) então tipo = 33
     if ($oDadosMovimentacao->getComFatura() == "t") {
        return ConfiguracaoArquivoObn::OPERACAO_COM_FATURA;
     }
@@ -646,9 +646,9 @@ exit;
       <add position="after">
         <![CDATA[
   /**
-   * Fun\E7\E3o que verifica o layout em que a linha ser\E1 gerada
-   * Caso n\E3o exista cadastro de detalhe (c\F3digo de barras) ser\E1 o LAYOUT3
-   * Sen\E3o tipo LAYOUT4
+   * Função que verifica o layout em que a linha será gerada
+   * Caso não exista cadastro de detalhe (código de barras) será o LAYOUT3
+   * Senão tipo LAYOUT4
    * @return Integer
    */
   public static function verificaTipoLinha_2($sCodigoDeBarras, $iSlip, $iCodigoBancoFavorecido, $iSlipVinculo) {
@@ -660,7 +660,7 @@ exit;
     if ($iSlip != null){
 
     if ($iCodigoBancoFavorecido == '001') {
-        if ($iSlipVinculo == 13) { // Slip de Reten\E7\E3o
+        if ($iSlipVinculo == 13) { // Slip de Retenção
             return ConfiguracaoArquivoObn::LAYOUT2;
         } else {
             return ConfiguracaoArquivoObn::LAYOUT3;
@@ -701,7 +701,7 @@ exit;
   private $iUnidade;  
   
   /**
-   * Codigo com ou sem fatura (f - N\E3o, t - Sim)
+   * Codigo com ou sem fatura (f - Não, t - Sim)
    * @var integer
    */
   private $iComFatura;
@@ -827,9 +827,9 @@ exit;
         break;
         case ConfiguracaoArquivoObn::LAYOUT3:
           /*
-            O tipo 3 \E9 utilizado em Natal para os Slips. O banco configurou este tipo 3 e tipo de opera\E7\E3o 17 em Natal para float 0,
-            ou seja, uma transfer\EAncia para o entre secret\E1rias \E9 realizada no mesmo dia.
-            E o tipo de opera\E7\E3o nela contida \E9 17, caso a conta cr\E9dito seja a conta \FAnica (7000-9) e 37 para as demais contas.
+            O tipo 3 é utilizado em Natal para os Slips. O banco configurou este tipo 3 e tipo de operação 17 em Natal para float 0,
+            ou seja, uma transferência para o entre secretárias é realizada no mesmo dia.
+            E o tipo de operação nela contida é 17, caso a conta crédito seja a conta única (7000-9) e 37 para as demais contas.
           */
           
           $oLinha          = $this->constroiLinhaTipoDois($oDadosMovimento);
@@ -861,7 +861,7 @@ exit;
       <add position="after">
         <![CDATA[
         default:
-          throw new BusinessException("Linha $iTipo n\E3o foi configurada para tipo OBN.");
+          throw new BusinessException("Linha $iTipo não foi configurada para tipo OBN.");
         ]]>
       </add>
     </operation>
@@ -931,7 +931,7 @@ exit;
       <add position="after">
         <![CDATA[
   /**
-   * Constr\F3i os dados que ser\E3o impressos na linha do tipo 3 (novo)
+   * Constrói os dados que serão impressos na linha do tipo 3 (novo)
    * @param MovimentoArquivoTransmissao $oDadosLinha
    * @return stdClass
    */
@@ -1005,7 +1005,7 @@ exit;
     $oStdLinhaTipoTres->valor_liquido_movimentacao  = str_pad(str_replace(".", "", $oDadosLinha->getValor()), 17, "0", STR_PAD_LEFT);
     $oStdLinhaTipoTres->campo_branco_dois       = str_repeat(" ", 3);
     $oStdLinhaTipoTres->campo_zero_um           = "000001";             // Campo sequencial da Lista (Fixo 000001)
-    $oStdLinhaTipoTres->tipo_pagamento          = "1";              // 1 - Pagamento Cr\E9dito em Conta BB
+    $oStdLinhaTipoTres->tipo_pagamento          = "1";              // 1 - Pagamento Crédito em Conta BB
     $oStdLinhaTipoTres->codigo_operacao         = $iTipoOperacao;
     $oStdLinhaTipoTres->campo_branco_um         = str_repeat(" ", 4);
     $oStdLinhaTipoTres->data_movimentacao       = "{$iDia}{$iMes}{$iAno}";
@@ -1090,7 +1090,7 @@ exit;
   public function salvarGeracaoTxtArquivo() {
   
     if (empty($this->iCodigoRemessa)) {
-        throw new BusinessException("ERRO [ 3 ] - Salvando geracao txt do arquivo - N\E3o foi encontrado c\F3digo da remessa.");
+        throw new BusinessException("ERRO [ 3 ] - Salvando geracao txt do arquivo - Não foi encontrado código da remessa.");
     }
     
     $oArquivoGerado           = db_utils::getDao("arquivoobngerado");
@@ -1103,7 +1103,7 @@ exit;
       $oArquivoGerado->datagera = date('d/m/Y');
       $oArquivoGerado->incluir(null);
       if ($oArquivoGerado->erro_status == 0) {
-        throw new BusinessException("N\E3o foi poss\EDvel gravar gera\E7\E3o do arquivo.");
+        throw new BusinessException("Não foi possível gravar geração do arquivo.");
       }
     }
   
@@ -1190,7 +1190,7 @@ exit;
       <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte3] */]]></search>
       <add position="after">
         <![CDATA[
-            /* verifica se a unidade n\E3o est\E1 contida na lista, e se sua movimenta\E7\E3o \E9 do tipo OBN */
+            /* verifica se a unidade não está contida na lista, e se sua movimentação é do tipo OBN */
             if (!in_array($unidade, $aUnidades) && $e25_empagetipotransmissao == 2) {
               $aUnidades[$orgao.":".$unidade] = str_replace("'","",$orgao.":".$unidade."|".urlencode($o41_descr));
             }
@@ -1231,11 +1231,11 @@ exit;
             $codigopagamento = "Pagamento de Empenho";
           } else {
             if ($tiposlip == 1) {
-              $codigopagamento = "Transfer\EAncia";
+              $codigopagamento = "Transferência";
             } else if ($tiposlip == 2) {
-              $codigopagamento = "Reten\E7\E3o";
+              $codigopagamento = "Retenção";
             } else if ($tiposlip == 3) {
-              $codigopagamento = "Transfer\EAncia (Repasse)";
+              $codigopagamento = "Transferência (Repasse)";
             } else {
               $codigopagamento = "-";
             }
@@ -1485,7 +1485,7 @@ function js_recarregaIframeMovimentos() {
       <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte14] */      
   if ($F('comboboxCNPJ') == "0") {
 
-    alert("Selecione um CNPJ para carregar os movimentos banc\E1rios.");
+    alert("Selecione um CNPJ para carregar os movimentos bancários.");
     return false;
   }]]></search>
       <add position="replace">
@@ -1494,7 +1494,7 @@ function js_recarregaIframeMovimentos() {
         /*
         if ($F('comboboxCNPJ') == "0") {
 
-          alert("Selecione um CNPJ para carregar os movimentos banc\E1rios.");
+          alert("Selecione um CNPJ para carregar os movimentos bancários.");
           return false;
         }*/ 
         ]]>
@@ -1523,7 +1523,7 @@ function js_recarregaIframeMovimentos() {
   }]]></search>
       <add position="replace">
         <![CDATA[if(!lMostraFiltroUnidade) {
-    var emiteComprovante = confirm("Os arquivos foram gerados com sucesso.\n C\F3digo da Remessa: "+oRetorno.iCodigoRemessa+" \n Deseja emitir o comprovante?");
+    var emiteComprovante = confirm("Os arquivos foram gerados com sucesso.\n Código da Remessa: "+oRetorno.iCodigoRemessa+" \n Deseja emitir o comprovante?");
     if (emiteComprovante) {
       jan = window.open('emp2_gerarq002.php?lCancelado=0&e87_codgera='+oRetorno.iCodigoRemessa+'','width='+(screen.availWidth-5)+',height='+(screen.availHeight-40)+',scrollbars=1,location=0 ');
     }
@@ -1664,7 +1664,7 @@ function js_recarregaIframeMovimentos() {
 
   <file path='cai1_planilhalancamento001.php'>
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lan\E7amento dedu\E7\E3o - parte1] */]]></search>
+      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lançamento dedução - parte1] */]]></search>
       <add position="after">
         <![CDATA[
   if ($('estrutural').value.substr(0,1) == '9') {
@@ -1675,7 +1675,7 @@ function js_recarregaIframeMovimentos() {
       </add>
     </operation>
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lan\E7amento dedu\E7\E3o - parte2] */]]></search>
+      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lançamento dedução - parte2] */]]></search>
       <add position="after">
         <![CDATA[
   var ContaReceitaLanc;
@@ -1689,13 +1689,13 @@ function js_recarregaIframeMovimentos() {
   }
 
   if (ContaReceitaLanc && ContaLanc) {
-    alert("J\E1 foi inserida uma receita para essa conta.");
+    alert("Já foi inserida uma receita para essa conta.");
     return false;
   }]]>
       </add>
     </operation>
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lan\E7amento dedu\E7\E3o - parte3] */]]></search>
+      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lançamento dedução - parte3] */]]></search>
       <add position="after">
         <![CDATA[
  var aContasReceita = new Array();
@@ -1703,14 +1703,14 @@ function js_recarregaIframeMovimentos() {
       </add>
     </operation>
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lan\E7amento dedu\E7\E3o - parte4] */]]></search>
+      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lançamento dedução - parte4] */]]></search>
       <add position="after">
         <![CDATA[
   aContasReceita.push($F('k81_receita'));]]>
       </add>
     </operation>
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lan\E7amento dedu\E7\E3o - parte5] */]]></search>
+      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lançamento dedução - parte5] */]]></search>
       <add position="after">
         <![CDATA[
   aContas.push($F('k81_conta'));]]>

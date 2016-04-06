@@ -133,7 +133,7 @@ if (isset($filtroMovimentos) && $filtroMovimentos == "pendencia") {
                                   left join slip              on slip.k17_codigo              = empageslip.e89_codigo 
                            where e80_instit = ".db_getsession('DB_instit')."
                              and e90_correto ='t' 
-                             and ( ((e53_valor-e53_vlranu-e53_vlrpag) > 0) or (slip.k17_situacao = 1 and slip.k17_instit = 1) )
+                             and ( ((e53_valor-e53_vlranu-e53_vlrpag) > 0) or (slip.k17_situacao = 1 and slip.k17_instit = ".db_getsession('DB_instit').") )
                              and empageconfgera.e90_cancelado is false 
                              and corempagemov.k12_codmov is null)";
 
@@ -156,7 +156,7 @@ if (!empty($filtrocnab)) {
 
 if(!isset($pesquisa_chave)){
 
-  $campos  = " distinct XYZ";
+  $campos  = "distinct empagegera.e87_codgera, empagedadosret.e75_codret, empagegera.e87_descgera, empagegera.e87_dataproc";
 
   if(isset($chave_e87_codgera) && (trim($chave_e87_codgera)!="") ){
     $sql = $clempagegera->sql_query_inner(null,$campos,"e87_codgera desc"," e87_codgera=$chave_e87_codgera and $where ");
