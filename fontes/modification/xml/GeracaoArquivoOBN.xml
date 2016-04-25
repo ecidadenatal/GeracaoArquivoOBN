@@ -651,9 +651,13 @@ exit;
    * Senão tipo LAYOUT4
    * @return Integer
    */
-  public static function verificaTipoLinha_2($sCodigoDeBarras, $iSlip, $iCodigoBancoFavorecido, $iSlipVinculo) {
+  public static function verificaTipoLinha_2($sCodigoDeBarras, $iCodigoReceita, $iSlip, $iCodigoBancoFavorecido, $iSlipVinculo) {
     if (!empty($sCodigoDeBarras)) {
-        return ConfiguracaoArquivoObn::LAYOUT4;
+      return ConfiguracaoArquivoObn::LAYOUT4;
+    }
+
+    if (!empty($iCodigoReceita)) {
+      return ConfiguracaoArquivoObn::LAYOUT5;
     }
 
     // caso seja slip
@@ -810,7 +814,8 @@ exit;
       $iTipoLinha = ConfiguracaoArquivoObn::verificaTipoLinha($oDadosMovimento->getCodigoBarra());]]></search>
       <add position="replace">
         <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte3] */
-       $iTipoLinha      = ConfiguracaoArquivoObn::verificaTipoLinha_2($oDadosMovimento->getCodigoBarra(), 
+      $iTipoLinha      = ConfiguracaoArquivoObn::verificaTipoLinha_2($oDadosMovimento->getCodigoBarra(), 
+                                                                      $oDadosMovimento->getCodReceita(),
                                                                       $oDadosMovimento->getCodigoSlip(), 
                                                                       $oDadosMovimento->getCodigoBancoFavorecido(), 
                                                                       $oDadosMovimento->getSlipVinculo());]]>
@@ -1041,27 +1046,6 @@ exit;
       <add position="replace">
         <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte15] */
     $oStdLinhaTipoQuatro->campo_zero_um                    = "000001";]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte16] */]]></search>
-      <add position="after">
-        <![CDATA[    
-    if ($oDadosLinha->getTipoFatura() == 2) {
-      $oDadosLinha->setTipoFatura(1);
-    } else {
-       $oDadosLinha->setTipoFatura(2);
-    }]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte17] */
-    if ($oDadosLinha->getTipoFatura() == 2) {]]></search>
-      <add position="replace">
-        <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte17] */
-    if ($oDadosLinha->getTipoFatura() == 1) {]]>
       </add>
     </operation>
     

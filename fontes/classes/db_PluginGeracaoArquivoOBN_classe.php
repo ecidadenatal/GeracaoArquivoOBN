@@ -149,6 +149,7 @@ class cl_PluginGeracaoArquivoOBN {
 	                      fc_validaretencoesmesanterior(e81_codmov,null) as validaretencao,
 	                      e83_codigocompromisso,
                         empagemovdetalhetransmissao.*,
+                        empagemovpagamento.*,
                         (select e152_finalidadepagamentofundeb from empempenhofinalidadepagamentofundeb where e152_numemp = empempenho.e60_numemp) as finalidadepagamento,
                         exists(select * 
                                  from empagedadosretmov 
@@ -176,11 +177,15 @@ class cl_PluginGeracaoArquivoOBN {
               	        left      join pcfornecon                  on pc63_contabanco = e98_contabanco
               	        left      join cgm                         on z01_numcgm = pc63_numcgm
               	        left      join empagemovtipotransmissao    on empagemovtipotransmissao.e25_empagemov = empagemov.e81_codmov
-              	        left      join empagemovdetalhetransmissao on  empagemovdetalhetransmissao.e74_empagemov = empagemov.e81_codmov
+              	        left      join (select distinct on (e74_empagemov) *
+                                        from empagemovdetalhetransmissao ) 
+                                    as empagemovdetalhetransmissao on  empagemovdetalhetransmissao.e74_empagemov = empagemov.e81_codmov
               	        left      join plugins.empagemovtipotransmissaofatura on empagemovtipotransmissaofatura.empagemovtipotransmissao = empagemovtipotransmissao.e25_sequencial
-
+                        left      join (select distinct on (empagemov) *
+                                        from plugins.empagemovpagamento  )
+                                    as empagemovpagamento on empagemovpagamento.empagemov = empagemov.e81_codmov
       	          where
-      	              {$sWhere} ";
+      	              {$sWhere}";
 		// "and empagemovtipotransmissao.e25_empagetipotransmissao = 2";
 		
 		$sqlSlip = "select
@@ -301,6 +306,7 @@ class cl_PluginGeracaoArquivoOBN {
 	                    false as validaretencao,
 	                    e83_codigocompromisso,
                       empagemovdetalhetransmissao.*,
+                      empagemovpagamento.*,
                       (select e153_finalidadepagamentofundeb from slipfinalidadepagamentofundeb where e153_slip = slip.k17_codigo) as finalidadepagamento,
                       exists(select * 
                                  from empagedadosretmov 
@@ -342,14 +348,19 @@ class cl_PluginGeracaoArquivoOBN {
   	                  left join conplano concre on concre.c60_codcon = cre.c61_codcon and concre.c60_anousu = cre.c61_anousu
                       left join conplanoconta descrconta on concre.c60_codcon = descrconta.c63_codcon and concre.c60_anousu = descrconta.c63_anousu
                       left join empagemovtipotransmissao on empagemovtipotransmissao.e25_empagemov = empagemov.e81_codmov
-                      left join empagemovdetalhetransmissao on  empagemovdetalhetransmissao.e74_empagemov = empagemov.e81_codmov
+                      left join (select  distinct on (e74_empagemov) *
+                                 from empagemovdetalhetransmissao )
+                                as empagemovdetalhetransmissao on  empagemovdetalhetransmissao.e74_empagemov = empagemov.e81_codmov
                       left join plugins.empagemovtipotransmissaofatura on empagemovtipotransmissaofatura.empagemovtipotransmissao = empagemovtipotransmissao.e25_sequencial
                       left join plugins.autorizacaorepasse ar on slip.k17_codigo = ar.slip
+                      left join (select  distinct on (empagemov) * 
+                                 from plugins.empagemovpagamento)
+                                as empagemovpagamento on empagemovpagamento.empagemov = empagemov.e81_codmov
   	                  where
-                        {$sWhere}" . " --order by c63_conta,lanc,e81_codmov";
+                        {$sWhere}" . "--order by c63_conta,lanc,e81_codmov";
 		
 		$sqlMov = $sqlOrdem . " union " . $sqlSlip;
-		
+    
 		return $sqlMov;
 	}
 	
@@ -601,7 +612,7 @@ class cl_PluginGeracaoArquivoOBN {
 		                      union 
 		                      {$sqlSlips}) as dados 
 		              order by orgao, unidade";
-		                      
+		                  
 		return $sSqlTxt;
 		
 	}
