@@ -160,7 +160,12 @@ $sqlOrdem = "
 	  inner join empagetipo on e85_codtipo = e83_codtipo
 	  inner join empord on e81_codmov = e82_codmov
 	  left join empageslip on e81_codmov = e89_codmov
-	  left join empagemovdetalhetransmissao on e81_codmov = e74_empagemov
+	  left      join (select distinct on (e74_empagemov) *
+                      from empagemovdetalhetransmissao ) 
+                 as empagemovdetalhetransmissao on  empagemovdetalhetransmissao.e74_empagemov = empagemov.e81_codmov
+      left      join (select distinct on (empagemov) *
+                                        from plugins.empagemovpagamento  )
+                                    as empagemovpagamento on empagemovpagamento.empagemov = empagemov.e81_codmov
 	  inner join conplanoreduz on e83_conta = c61_reduz and c61_anousu = ".db_getsession("DB_anousu")."
 	  inner join conplanoconta on c63_codcon = c61_codcon and c63_anousu = c61_anousu
 	  left join slip on slip.k17_codigo = e89_codigo
@@ -310,7 +315,12 @@ $sqlOrdem = "
        left join conplanoconta descrconta  on concre.c60_codcon  = descrconta.c63_codcon
                                           and concre.c60_anousu  = descrconta.c63_anousu
        left join plugins.autorizacaorepasse ar on slip.k17_codigo = ar.slip
-
+       left join (select  distinct on (e74_empagemov) *
+                  from empagemovdetalhetransmissao )
+                as empagemovdetalhetransmissao on  empagemovdetalhetransmissao.e74_empagemov = empagemov.e81_codmov
+       left join (select  distinct on (empagemov) * 
+                                 from plugins.empagemovpagamento)
+                                as empagemovpagamento on empagemovpagamento.empagemov = empagemov.e81_codmov
   where e80_instit = " . db_getsession("DB_instit") . " and  $db_where
   order by e85_codtipo,z01_nome,pc63_banco,pc63_agencia";
 	$sqlMov = $sqlOrdem." union ".$sqlSlip;
