@@ -277,7 +277,7 @@ $sqlOrdem = "
 	  e89_codigo as e82_codord,
 	  0 as  vlrretencao,
 	case when fatura = 't' then 2 else 1 end as comfatura,
-	null as codigobarras,
+	e74_codigodebarra as codigobarras,
         --sliptipooperacaovinculo.k153_slipoperacaotipo as slipvinculo
         (case when ar.slip is null then sliptipooperacaovinculo.k153_slipoperacaotipo else 1 end) as slipvinculo
   from empageconfgera
