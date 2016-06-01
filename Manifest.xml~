@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
-  <plugin name="GeracaoArquivoOBN" label="Geracao Arquivo OBN" plugin-version="1.0" ecidade-version="2.3.39" id-modulo="39">
+  <plugin name="GeracaoArquivoOBN" label="Geracao Arquivo OBN" plugin-version="1.4" ecidade-version="2.3.39" id-modulo="39">
     <id id="GeracaoArquivoOBN"> </id>
     <files>
 
@@ -29,6 +29,7 @@
     
     <dependencies>
       <plugin name="SlipDepartamento" version="1.0" />
+      <plugin name="ArquivoOBNGRU" version="1.0" />
     </dependencies>
   
   </plugin>

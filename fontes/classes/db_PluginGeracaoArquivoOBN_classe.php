@@ -437,6 +437,7 @@ class cl_PluginGeracaoArquivoOBN {
 			$sql2 = " where $dbwhere";
 		}
 		$sql2 .= ($sql2 != "" ? " and " : " where ") . " k17_instit = " . db_getsession ( "DB_instit" );
+        $sql2 .= ($sql2 != "" ? " and " : " where ") . " k17_dtestorno is null ";
 		$sql .= $sql2;
 		if ($ordem != null) {
 			$sql .= " order by ";
