@@ -1737,4 +1737,25 @@ function js_recarregaIframeMovimentos() {
       </add>
     </operation>
   </file>
+
+  <file path='emp4_empageretornoconf001_iframe.php'>
+
+    <operation>
+      <search regex="true" flag="U"><![CDATA[(if\(isset\(\$retornoarq((\n*.*\s*)*)\}\n*\s*})]]></search>
+      <add>
+        <![CDATA[if(isset($retornoarq) && trim($retornoarq)!=""){
+              $dbwhere = "    e80_instit = " . db_getsession("DB_instit") . "
+                                                          and e75_codret in ( {$retornoarq})
+                                                          and e90_cancelado is false
+                          and (((e53_valor-e53_vlranu-e53_vlrpag) > 0 
+                                                          and e60_instit=".db_getsession("DB_instit").")
+                          or (k17_situacao = 1 and e60_instit=".db_getsession("DB_instit")."))";
+                    if(isset($contapaga)){
+                $dbwhere .= " and e83_codtipo=$contapaga ";
+              }
+            }]]>
+      </add>
+    </operation>
+
+  </file>
 </modification>
