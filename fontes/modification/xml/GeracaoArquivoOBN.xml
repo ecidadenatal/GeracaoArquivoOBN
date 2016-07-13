@@ -1741,15 +1741,19 @@ function js_recarregaIframeMovimentos() {
   <file path='emp4_empageretornoconf001_iframe.php'>
 
     <operation>
-      <search regex="true" flag="U"><![CDATA[(if\(isset\(\$retornoarq((\n*.*\s*)*)\}\n*\s*})]]></search>
-      <add>
-        <![CDATA[if(isset($retornoarq) && trim($retornoarq)!=""){
-              $dbwhere = "    e80_instit = " . db_getsession("DB_instit") . "
-                                                          and e75_codret in ( {$retornoarq})
+      <search regex="true" flag="U"><![CDATA[(if\(isset\(\$retornoarq((\n*.*\s*)*)\}\n*\s*\})]]></search>
+      <add><![CDATA[if(isset($retornoarq) && trim($retornoarq)!=""){
+                          $dbwhere = "e75_codret in ( {$retornoarq})
                                                           and e90_cancelado is false
-                          and (((e53_valor-e53_vlranu-e53_vlrpag) > 0 
-                                                          and e60_instit=".db_getsession("DB_instit").")
-                          or (k17_situacao = 1 and e60_instit=".db_getsession("DB_instit")."))";
+                          and (
+                                                                  (
+                                                                       (e53_valor-e53_vlranu-e53_vlrpag) > 0 
+                                                                   and e60_instit=".db_getsession("DB_instit")."
+                                                                  )
+                               or (    k17_situacao = 1 
+                                                                   and k17_instit=".db_getsession("DB_instit")."
+                                                                  )
+                                                              )";
                     if(isset($contapaga)){
                 $dbwhere .= " and e83_codtipo=$contapaga ";
               }
@@ -1757,5 +1761,20 @@ function js_recarregaIframeMovimentos() {
       </add>
     </operation>
 
+    <operation>
+      <search regex="true"><![CDATA[(\<b\>Arquivo\s*enviado.*\<br\>)]]></search>
+      <add>
+        <![CDATA[<b>Arquivo enviado &nbsp;&nbsp;&nbsp;&nbsp;$e87_codgera - $e87_descgera / Retorno: $retornoarq </b><br>]]>
+      </add>
+    </operation>
+  </file>
+
+  <file path='classes/db_empage_classe.php'>
+    <operation>
+      <search regex="true" flag="U"><![CDATA[(sql_query_rel_arqretorno(\n*.*)*)(\$sql.*empageconfgera.*e86_codmov.*;)(\n*.*)(\$sql.*empagegera.*e90_codgera.*;)]]></search>
+      <add>
+        <![CDATA[$1 $2 $sql .= "      left  join plugins.empageconfgera on plugins.empageconfgera.codmov = empageconf.e86_codmov "; $4 $sql .= "      left  join empagegera on empagegera.e87_codgera= plugins.empageconfgera.codgera ";]]>
+      </add>
+    </operation>
   </file>
 </modification>
