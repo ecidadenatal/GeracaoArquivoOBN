@@ -1506,19 +1506,20 @@ function js_recarregaIframeMovimentos() {
     alert(oRetorno.sMessage.urlDecode());
   }]]></search>
       <add position="replace">
-        <![CDATA[if(!lMostraFiltroUnidade) {
-    var emiteComprovante = confirm("Os arquivos foram gerados com sucesso.\n Código da Remessa: "+oRetorno.iCodigoRemessa+" \n Deseja emitir o comprovante?");
-    if (emiteComprovante) {
-      jan = window.open('emp2_gerarq002.php?lCancelado=0&e87_codgera='+oRetorno.iCodigoRemessa+'','width='+(screen.availWidth-5)+',height='+(screen.availHeight-40)+',scrollbars=1,location=0 ');
-    }
-  } else {
-    if (oRetorno.iStatus == '1') {
-      var pArquivo = oRetorno.sArquivo+"# Download do Arquivo - "+ oRetorno.sArquivo;
-      js_montarlista(pArquivo, 'form1');
+        <![CDATA[if (oRetorno.iStatus == '1') {
+      if (!lMostraFiltroUnidade) {
+         var emiteComprovante = confirm("Os arquivos foram gerados com sucesso.\n Código da Remessa: "+oRetorno.iCodigoRemessa+" \n Deseja emitir o comprovante?");
+         if (emiteComprovante) {
+           jan = window.open('emp2_gerarq002.php?lCancelado=0&e87_codgera='+oRetorno.iCodigoRemessa+'','width='+(screen.availWidth-5)+',height='+(screen.availHeight-40)+',scrollbars=1,location=0 ');
+         }
+      } else {
+        var pArquivo = oRetorno.sArquivo+"# Download do Arquivo - "+ oRetorno.sArquivo;
+        js_montarlista(pArquivo, 'form1');
+      }
     } else {
       alert(oRetorno.sMessage.urlDecode());
     }
-  }]]>
+]]>
       </add>
     </operation>
 */
@@ -1526,6 +1527,26 @@ function js_recarregaIframeMovimentos() {
   </file>
   
   <file path='cai4_arquivoBanco004.RPC.php'>
+    <operation>
+      <search><![CDATA[case "gerarArquivoTXT":]]></search>
+      <add position="after">
+        <![CDATA[
+
+      /*
+       * Validamos se o movimento consta em outra geração de arquivo ativa
+       */
+      $oDaoEmpAgeConfGera = db_utils::getDao("empageconfgera");	
+      foreach (explode(",", $oParam->sMovimentos) as $iMovimento) {
+        $oDaoEmpAgeConfGera->sql_record($oDaoEmpAgeConfGera->sql_query_file(null,null,"e90_codgera",null,"e90_cancelado is false and e90_codmov = {$iMovimento}"));
+      	if ($oDaoEmpAgeConfGera->numrows > 0) {
+      	  throw new Exception("Movimento de agenda {$iMovimento} consta em outro arquivo ativo");	
+      	}
+      	
+      }
+          ]]>
+      </add>
+    </operation>
+
     <operation>
       <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Salvar Geracao Arquivo TXT OBN - parte1] */]]></search>
       <add position="after">
