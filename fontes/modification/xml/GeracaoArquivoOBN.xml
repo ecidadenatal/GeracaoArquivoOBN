@@ -1132,6 +1132,9 @@ exit;
           if(!empty($iOrgao) && !empty($iUnidade)) {
             $dbWhereEmpenho  = "and orcdotacao.o58_orgao = {$iOrgao} ";
             $dbWhereEmpenho .= "and orcdotacao.o58_unidade = {$iUnidade}";
+            $dbWhereEmpenho .= "and exists(select 1 from plugins.solicitacaorepasseempnota
+                                                          inner join pagordemnota on e71_codnota = empnota
+                                                        where e71_codord = e50_codord and estornado = 'f')";
             
             $dbWhereSlip  = "and db_departorg.db01_orgao = {$iOrgao} ";
             $dbWhereSlip .= "and db_departorg.db01_unidade = {$iUnidade}";
