@@ -1132,9 +1132,9 @@ exit;
           if(!empty($iOrgao) && !empty($iUnidade)) {
             $dbWhereEmpenho  = "and orcdotacao.o58_orgao = {$iOrgao} ";
             $dbWhereEmpenho .= "and orcdotacao.o58_unidade = {$iUnidade}";
-            $dbWhereEmpenho .= "and exists(select 1 from plugins.solicitacaorepasseempnota
+            /*$dbWhereEmpenho .= "and exists(select 1 from plugins.solicitacaorepasseempnota
                                                           inner join pagordemnota on e71_codnota = empnota
-                                                        where e71_codord = e50_codord and estornado = 'f')";
+                                                        where e71_codord = e50_codord and estornado = 'f')";*/
             
             $dbWhereSlip  = "and db_departorg.db01_orgao = {$iOrgao} ";
             $dbWhereSlip .= "and db_departorg.db01_unidade = {$iUnidade}";
@@ -1209,6 +1209,183 @@ exit;
       </add>
     </operation>
     
+    <operation>
+      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte6] */]]></search>
+      <add position="after">
+        <![CDATA[
+          $codigopagamento = "-";
+          if ($e60_codemp != 0) {
+            $codigopagamento = "Pagamento de Empenho";
+          } else {
+            if ($tiposlip == 1) {
+              $codigopagamento = "Transferência";
+            } else if ($tiposlip == 2) {
+              $codigopagamento = "Retenção";
+            } else if ($tiposlip == 3) {
+              $codigopagamento = "Transferência (Repasse)";
+            } else {
+              $codigopagamento = "-";
+            }
+          }
+         ]]>
+      </add>
+    </operation>         
+
+    <operation>
+      <search regex="true"><![CDATA[(<td.*center.*Recurso.*)]]></search>
+      <add>
+        <![CDATA[$1
+          <td class='table_header' align='center'><b>Tipo</b></td>        
+        ]]>
+      </add>
+    </operation>         
+
+    <operation>
+      <search regex="true"><![CDATA[(\$o15_codigo.*\s*\n*<\/td>)]]></search>
+      <add>
+        <![CDATA[$1
+        
+
+          <!-- COLUNA  6 TIPO DE PAG   -->
+          <td class='linhagrid' style='text-align:left' title='Recurso' align='right'>
+            <?
+
+            $sqlOrdem = "
+              select 
+                pc63_conta::varchar,
+                pc63_contabanco::varchar,
+                coalesce(pc63_conta_dig,'0') as pc63_conta_dig,
+                coalesce(pc63_banco,'000') as pc63_banco,
+                e60_codemp,
+                case when fatura = 't' then 2 else 1 end as comfatura,
+                e74_codigodebarra as codigobarras,
+                null::integer as slipvinculo
+              from empagemov
+                inner join empagemovtipotransmissao on e25_empagemov = e81_codmov
+                  left join plugins.empagemovtipotransmissaofatura on empagemovtipotransmissaofatura.empagemovtipotransmissao = e25_sequencial
+                inner join empage  on  empage.e80_codage = empagemov.e81_codage
+                inner join empempenho on e60_numemp = e81_numemp
+                inner join orcdotacao on e60_coddot = o58_coddot and e60_anousu = o58_anousu
+                inner join empagepag on e81_codmov = e85_codmov
+                inner join empagetipo on e85_codtipo = e83_codtipo
+                inner join empord on e81_codmov = e82_codmov
+                  left join empageslip on e81_codmov = e89_codmov
+                  left join (select distinct on (e74_empagemov) *
+                                from empagemovdetalhetransmissao ) 
+                            as empagemovdetalhetransmissao on  empagemovdetalhetransmissao.e74_empagemov = empagemov.e81_codmov
+                  left join (select distinct on (empagemov) *
+                                from plugins.empagemovpagamento  )
+                            as empagemovpagamento on empagemovpagamento.empagemov = empagemov.e81_codmov
+                inner join conplanoreduz on e83_conta = c61_reduz and c61_anousu = ".db_getsession("DB_anousu")."
+                inner join conplanoconta on c63_codcon = c61_codcon and c63_anousu = c61_anousu
+                  left join slip on slip.k17_codigo = e89_codigo
+                  left join slipnum on slipnum.k17_codigo = slip.k17_codigo
+                  left join empageconfcanc on e88_codmov = e81_codmov
+                  left join empagemovconta on e81_codmov = e98_codmov
+                  left join pcfornecon on pc63_contabanco = e98_contabanco
+                  left join cgm on z01_numcgm = pc63_numcgm
+              where e80_instit = " . db_getsession("DB_instit") . " and e81_codmov = {$e81_codmov}";
+            $sqlSlip = "
+              select  
+                (case when pc63_conta is null then descrconta.c63_conta
+                   else pc63_conta end )::varchar as pc63_conta,
+                null as pc63_contabanco,
+                coalesce((case when pc63_conta_dig is null then descrconta.c63_dvconta
+                 else pc63_conta_dig end ),'0')::varchar as pc63_conta_dig,
+                coalesce(pc63_banco, descrconta.c63_banco) as pc63_banco,
+                'slip' as e60_codemp,
+                case when fatura = 't' then 2 else 1 end as comfatura,
+                e74_codigodebarra as codigobarras,
+                (case when ar.slip is null then sliptipooperacaovinculo.k153_slipoperacaotipo else 1 end) as slipvinculo
+              from empagemov                
+                  inner join empagemovtipotransmissao on e25_empagemov = e81_codmov
+                    left join plugins.empagemovtipotransmissaofatura on empagemovtipotransmissaofatura.empagemovtipotransmissao = e25_sequencial 
+                  inner join empage                   on empage.e80_codage  = empagemov.e81_codage
+                  inner join empagepag                on e81_codmov         = e85_codmov
+                  inner join empagetipo               on e85_codtipo        = e83_codtipo
+                  inner join empageslip               on e81_codmov         = e89_codmov
+                  inner join conplanoreduz            on c61_reduz          = e83_conta
+                                                     and c61_anousu         = ".db_getsession("DB_anousu")."
+                  inner join conplanoconta            on c63_codcon         = c61_codcon
+                                                     and c63_anousu         = c61_anousu
+                  inner join slip                     on slip.k17_codigo    = e89_codigo
+                  inner join sliptipooperacaovinculo         on slip.k17_codigo = sliptipooperacaovinculo.k153_slip
+                  inner join slipnum                  on slipnum.k17_codigo = slip.k17_codigo
+                  inner join plugins.saltesdepart on c61_reduz = saltes
+                  inner join db_depart on depart = coddepto
+                  inner join db_depusu on db_depart.coddepto = db_depusu.coddepto and db_depusu.id_usuario = ".db_getsession("DB_id_usuario")."
+                    left join empageconfcanc            on e88_codmov         = e81_codmov
+                    left join empagemovconta            on e81_codmov         = e98_codmov
+                    left join pcfornecon                on pc63_contabanco    = e98_contabanco
+                    left join cgm                       on z01_numcgm         = pc63_numcgm
+                    left join cgm cgmslip               on cgmslip.z01_numcgm = slipnum.k17_numcgm
+                    left join conplanoreduz cre         on cre.c61_reduz      = k17_debito
+                                                       and cre.c61_anousu     = ".db_getsession("DB_anousu")."
+                    left join conplano concre           on concre.c60_codcon  = cre.c61_codcon
+                                                       and concre.c60_anousu  = cre.c61_anousu
+
+                    left join conplanoconta descrconta  on concre.c60_codcon  = descrconta.c63_codcon
+                                                       and concre.c60_anousu  = descrconta.c63_anousu
+                    left join plugins.autorizacaorepasse ar on slip.k17_codigo = ar.slip
+                    left join (select  distinct on (e74_empagemov) *
+                                              from empagemovdetalhetransmissao )
+                                            as empagemovdetalhetransmissao on  empagemovdetalhetransmissao.e74_empagemov = empagemov.e81_codmov
+                    left join (select  distinct on (empagemov) * 
+                                             from plugins.empagemovpagamento)
+                                            as empagemovpagamento on empagemovpagamento.empagemov = empagemov.e81_codmov
+                where e80_instit = " . db_getsession("DB_instit") . " and e81_codmov = {$e81_codmov} ";
+              $sqlMov = $sqlOrdem." union ".$sqlSlip;
+              $result_empagegera = db_query($sqlMov);
+              $oEmpAgeGera = db_utils::fieldsMemory($result_empagegera, 0);
+
+              if (!empty($oEmpAgeGera->codigobarras)) {
+                $tipooperacao = 38;
+              } else {
+                // SLIP
+                if ($oEmpAgeGera->e60_codemp == "slip") {
+
+                  if ($oEmpAgeGera->pc63_banco == "001") {
+                    if ($oEmpAgeGera->slipvinculo == 13) { // Retenção BB
+                      if ($oEmpAgeGera->comfatura == 2) {
+                        $tipooperacao = 33;
+                      } else {
+                        $tipooperacao = 32;
+                      }
+                    } else {
+                      if ($oEmpAgeGera->pc63_conta.$oEmpAgeGera->pc63_dvconta == "70009") {
+                         $tipooperacao = 17;
+                      } else {
+                         $tipooperacao = 37;
+                      }
+                    }
+                  } else { 
+                     $tipooperacao = 31;
+                  }
+                } else {
+                  // EMPENHO
+                  if ($oEmpAgeGera->pc63_banco == "001") {
+                    if ($oEmpAgeGera->comfatura == 2) {
+                      $tipooperacao = 33;
+                    } else {
+                      $tipooperacao = 32;
+                    }
+                  } else {                    
+                    if ($oEmpAgeGera->comfatura == 2) {
+                      $tipooperacao = 33;
+                    } else {
+                      $tipooperacao = 31;
+                    }
+                  } 
+                }
+              }
+              
+              echo $tipooperacao;
+            ?>
+          </td>
+        ]]>
+      </add>
+    </operation>    
+
     <operation>
       <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte6] */]]></search>
       <add position="after">
@@ -1762,46 +1939,6 @@ function js_recarregaIframeMovimentos() {
     </operation>
   </file>
 
-  <file path='emp4_empageretornoconf001_iframe.php'>
-
-    <operation>
-      <search regex="true" flag="U"><![CDATA[(if\(isset\(\$retornoarq((\n*.*\s*)*)\}\n*\s*\})]]></search>
-      <add><![CDATA[if(isset($retornoarq) && trim($retornoarq)!=""){
-                          $dbwhere = "e75_codret in ( {$retornoarq})
-                                                          and e90_cancelado is false
-                          and (
-                                                                  (
-                                                                       (e53_valor-e53_vlranu-e53_vlrpag) > 0 
-                                                                   and e60_instit=".db_getsession("DB_instit")."
-                                                                  )
-                               or (    k17_situacao = 1 
-                                                                   and k17_instit=".db_getsession("DB_instit")."
-                                                                  )
-                                                              )";
-                    if(isset($contapaga)){
-                $dbwhere .= " and e83_codtipo=$contapaga ";
-              }
-            }]]>
-      </add>
-    </operation>
-
-    <operation>
-      <search regex="true"><![CDATA[(\<b\>Arquivo\s*enviado.*\<br\>)]]></search>
-      <add>
-        <![CDATA[<b>Arquivo enviado &nbsp;&nbsp;&nbsp;&nbsp;$e87_codgera - $e87_descgera / Retorno: $retornoarq </b><br>]]>
-      </add>
-    </operation>
-  </file>
-
-  <file path='classes/db_empage_classe.php'>
-    <operation>
-      <search regex="true" flag="U"><![CDATA[(sql_query_rel_arqretorno(\n*.*)*)(\$sql.*empageconfgera.*e86_codmov.*;)(\n*.*)(\$sql.*empagegera.*e90_codgera.*;)]]></search>
-      <add>
-        <![CDATA[$1 $2 $sql .= "      left  join plugins.empageconfgera on plugins.empageconfgera.codmov = empageconf.e86_codmov "; $4 $sql .= "      left  join empagegera on empagegera.e87_codgera= plugins.empageconfgera.codgera ";]]>
-      </add>
-    </operation>
-  </file>
-
   <file path='func_mostratotal.php'>
     <operation>
       <search regex="true"><![CDATA[(e81_valor)(\).*as)]]></search>
@@ -1819,4 +1956,5 @@ function js_recarregaIframeMovimentos() {
       </add>
     </operation>
   </file>
+
 </modification>
