@@ -156,7 +156,8 @@ class cl_PluginGeracaoArquivoOBN {
                                       inner join empagedadosret on e76_codret = e75_codret 
                                                                and e75_ativo is true
                                 where e76_codmov = e81_codmov) as processado,
-		        null::integer as slipvinculo
+		        null::integer as slipvinculo,
+			conplanoreduz.c61_reduz as saltes_pag
                    from empagemov
             	          {$sInner} join empageconfgera               on e90_codmov = e81_codmov
             	          {$sInner} join empagegera                   on e90_codgera=e87_codgera
@@ -314,8 +315,9 @@ class cl_PluginGeracaoArquivoOBN {
                                                                and e75_ativo is true
                                 where e76_codmov = e81_codmov) as processado,
 		      --sliptipooperacaovinculo.k153_slipoperacaotipo as slipvinculo
-                      (case when ar.slip is null then sliptipooperacaovinculo.k153_slipoperacaotipo else 1 end) as slipvinculo
-		      --13 as slipvinculo
+                      (case when ar.slip is null then sliptipooperacaovinculo.k153_slipoperacaotipo else 1 end) as slipvinculo,
+		      --13 as slipvinculo,
+		      conplanoreduz.c61_reduz as saltes_pag
                   from empagemov
 	                    {$sInner} join empageconfgera    on e90_codmov         = e81_codmov
 	                    {$sInner} join empagegera        on e90_codgera        = e87_codgera
