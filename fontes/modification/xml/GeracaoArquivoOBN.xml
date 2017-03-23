@@ -6,9 +6,10 @@
   
   <file path='func_empagegera.php'>
     <operation>
-      <search><![CDATA[<!-- [Inicio plugin GeracaoArquivoOBN - parte1] -->]]></search>
-      <add position="after">
+      <search regex="true"><![CDATA[(<tr>.*\n*<td\s*.*\n*<input\s*name="pesquisar".*value="Pesquisar">)]]></search>
+      <add>
         <![CDATA[
+<!-- [Inicio plugin GeracaoArquivoOBN - parte1] -->        
 <tr>
   <td><b>Mostrar registros: </b>
   </td>
@@ -19,14 +20,18 @@
    ?>
   </td>
 </tr>
-        ]]>
+<!-- [Fim plugin GeracaoArquivoOBN - parte1] -->
+
+$1]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - parte2] */]]></search>
-      <add position="after">
+      <search regex="true"><![CDATA[(\$where\s*=\s*"\s*e91_codcheque.*db_getsession\("DB_instit"\);)]]></search>
+      <add>
         <![CDATA[
+/* [Inicio plugin GeracaoArquivoOBN] */
+$where = " e91_codcheque is null ";
 if (isset($filtroMovimentos) && $filtroMovimentos == "pendencia") {
 
   $where .= " and exists (select 1 
@@ -54,125 +59,52 @@ if (isset($gerado) && $gerado == '0') {
 } else if (isset($gerado) && $gerado == '1') {
   $where .= " and e87_codgera in (select codgera from plugins.arquivoobngerado) ";
 }
-        ]]>
+
+if (isset($lCancelado) && $lCancelado == '0') {
+  $where .= " and not exists (select 1 from plugins.arquivoobngerado where codgera = e87_codgera)";	
+}
+
+/* [Fim plugin GeracaoArquivoOBN] */]]>
       </add>
     </operation>
 
     <operation>
-      <search><![CDATA[require_once("classes/db_empagegera_classe.php");]]></search>
-      <add position="replace">
-        <![CDATA[require_once(modification("classes/db_empagegera_classe.php"));]]>
-      </add>
-    </operation>
-
-    <operation>
-      <search><![CDATA[$campos = "empagegera.*";]]></search>
-      <add position="replace">
-        <![CDATA[
-$campos = "empagegera.*, empage.e80_instit as dl_Instituicao";]]>
-      </add>
-    </operation>
-
-    <operation>
-      <search><![CDATA[$where = " e91_codcheque is null and e80_instit = " . db_getsession("DB_instit");]]></search>
-      <add position="replace">
-        <![CDATA[
-$where = " e91_codcheque is null ";]]>
-      </add>
-    </operation>
-
-    <operation>
-      <search><![CDATA[include("funcoes/db_func_empagegera.php");]]></search>
-      <add position="replace">
-        <![CDATA[
-include(modification("funcoes/db_func_empagegera.php"));]]>
-      </add>
-    </operation>
-
-    <operation>
-      <search><![CDATA[$where  .= " and e90_cancelado is {$sVerificarCancelado} ";]]></search>
-      <add position="replace">
+      <search regex="true"><![CDATA[(\$where\s*.=\s*".*e90_cancelado.*{\$sVerificarCancelado}.*)]]></search>
+      <add>
         <![CDATA[$where  .= " and (e90_cancelado is {$sVerificarCancelado} or e87_codgera in (select e75_codgera from empagedadosret))";]]>
       </add>
     </operation>
-
+    
     <operation>
-      <search><![CDATA[$where .= " and empagedadosret.e75_codgera is not null ";]]></search>
-      <add position="replace">
-        <![CDATA[$where .= " and (empagedadosret.e75_codgera is not null or e87_codgera in (select e75_codgera from empagedadosret)) ";]]>
+      <search regex="true"><![CDATA[\$campos\s*=\s*"empagegera.*";]]></search>
+      <add>
+        <![CDATA[$campos = "empagegera.*, empage.e80_instit as dl_Instituicao";]]>
       </add>
     </operation>
 
     <operation>
-      <search><![CDATA[$where .= " and empagedadosret.e75_codgera is not null ";]]></search>
-      <add position="replace">
-        <![CDATA[$where .= " and (empagedadosret.e75_codgera is not null or e87_codgera in (select e75_codgera from empagedadosret)) ";]]>
+      <search regex="true"><![CDATA[\$where\s*.=\s*"\s*and\s*empagedadosret.e75_codgera\s*is\s*not\s*null.*";]]></search>
+      <add>
+        <![CDATA[$where .= " and (empagedadosret.e75_codgera is not null or e87_codgera in (select e75_codgera from empagedadosret))";]]>
       </add>
     </operation>
-
-    <operation>
-      <search><![CDATA[if ($pesquisa_chave!=null && $pesquisa_chave!="") {
-
-    if (isset($lRetorno) && $lRetorno == '1') {
-
-      $where .= " and empagedadosret.e75_codgera is not null ";
-    }]]></search>
-      <add position="replace">
-        <![CDATA[if ($pesquisa_chave!=null && $pesquisa_chave!="") {
-
-    if (isset($lRetorno) && $lRetorno == '1') {
-
-      $where .= " and (empagedadosret.e75_codgera is not null or exists (select 1 from empagedadosret inner join empagegera on e75_codgera = e87_codgera where e75_codgera = $pesquisa_chave)) ";
-    }]]>
-      </add>
-    </operation>
+    
   </file>
 
   <file path='classes/db_empagegera_classe.php'>
     <operation>
-      <search><![CDATA[     $sql .= " from empagegera                                                                     ";
-     $sql2 = "";
-     $sql .= " inner join empageconfgera                                                           ";
-     $sql .= "       on empageconfgera.e90_codgera = empagegera.e87_codgera                        ";
-     $sql .= " inner join empageconf                                                               ";
-     $sql .= "       on empageconf.e86_codmov = empageconfgera.e90_codmov                          ";
-     $sql .= " inner join empagemov                                                                ";
-     $sql .= "       on empagemov.e81_codmov = empageconfgera.e90_codmov                           ";
-     $sql .= " inner join empage  on  empage.e80_codage = empagemov.e81_codage                     ";
-     $sql .= " left join empempenho                                                                ";
-     $sql .= "       on empempenho.e60_numemp = empagemov.e81_numemp                               ";
-     $sql .= " left join cgm                                                                       ";
-     $sql .= "      on cgm.z01_numcgm = empempenho.e60_numcgm                                      ";
-		 $sql .= " left join empageconfche                                                             ";
-		 $sql .= "      on empageconfche.e91_codmov = empagemov.e81_codmov and e91_ativo is true       ";
-		 $sql .= " left join empagedadosret on empageconfgera.e90_codgera = empagedadosret.e75_codgera ";]]></search>
-      <add position="replace">
-        <![CDATA[     $sql .= " from empagegera                                                                     ";
-     $sql2 = "";
-     $sql .= " left join empageconfgera                                                           ";
-     $sql .= "       on empageconfgera.e90_codgera = empagegera.e87_codgera                        ";
-     $sql .= " left join empageconf                                                               ";
-     $sql .= "       on empageconf.e86_codmov = empageconfgera.e90_codmov                          ";
-     $sql .= " left join empagemov                                                                ";
-     $sql .= "       on empagemov.e81_codmov = empageconfgera.e90_codmov                           ";
-     $sql .= " left join empage  on  empage.e80_codage = empagemov.e81_codage                     ";
-     $sql .= " left join empempenho                                                                ";
-     $sql .= "       on empempenho.e60_numemp = empagemov.e81_numemp                               ";
-     $sql .= " left join cgm                                                                       ";
-     $sql .= "      on cgm.z01_numcgm = empempenho.e60_numcgm                                      ";
-		 $sql .= " left join empageconfche                                                             ";
-		 $sql .= "      on empageconfche.e91_codmov = empagemov.e81_codmov and e91_ativo is true       ";
-		 $sql .= " left join empagedadosret on empageconfgera.e90_codgera = empagedadosret.e75_codgera ";]]>
+      <search regex="true" flag="U"><![CDATA[(function sql_query_inner.*)((.*\n*)*)(inner)((.*\n*)*)(inner)((.*\n*)*)(inner)((.*\n*)*)(inner)]]></search>
+      <add>
+        <![CDATA[$1 $2 left $5 left $8 left $11 left]]>
       </add>
     </operation>
   </file>
 
   <file path='funcoes/db_func_empagegera.php'>
     <operation>
-      <search><![CDATA[$campos = "empagegera.e87_codgera,empagegera.e87_descgera,empagegera.e87_data,empagegera.e87_hora,empagegera.e87_dataproc";]]></search>
-      <add position="replace">
-        <![CDATA[
-$campos = "empagegera.e87_codgera, 
+      <search regex="true"><![CDATA[\$campos.*;]]></search>
+      <add>
+        <![CDATA[$campos = "empagegera.e87_codgera, 
            (case 
               when (empage.e80_instit is not null) then empage.e80_instit ||' - '|| (select nomeinst from db_config where codigo = empage.e80_instit)
               else '' 
@@ -188,54 +120,119 @@ $campos = "empagegera.e87_codgera,
       </add>
     </operation>
   </file>
-  
-  <file path='emp4_selarquivo001.php'>
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN] */]]></search>
-      <add position="after">
-        <![CDATA[
-require_once("emp4_pluginGeracaoArquivoOBNArquivosProcessados001.php");
-exit;
-        ]]>
-      </add>
-    </operation>
-  </file>  
-  
+
   <file path='model/caixa/arquivos/PagamentoFornecedorBancoDoBrasilOBN.model.php'>
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - correcao codigo movimento] */          
-          $oRegistro->codigo_movimento = trim((int) $oArquivo->nummov);]]></search>
-      <add position="replace">
-        <![CDATA[
-        /* [Inicio plugin GeracaoArquivoOBN  - correcao codigo movimento] */
-          $oRegistro->codigo_movimento = trim((int) $oArquivo->numob);
-        ]]>
+      <search regex="true"><![CDATA[(\$oRegistro->codigo_movimento\s*=.*)\$oArquivo->nummov\);]]></search>
+      <add>
+        <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - correcao codigo movimento] */
+          $1$oArquivo->numob);
+          /* [Fim plugin GeracaoArquivoOBN  - correcao codigo movimento] */]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Observacao ocorrencia] */]]></search>
-      <add position="after">
-        <![CDATA[
+      <search regex="true"><![CDATA[\$oRegistro->data_efetivacao\s*=.*;]]></search>
+      <add>
+        <![CDATA[$oRegistro->data_efetivacao = substr($oArquivo->datamov, 4, 4)."-".substr($oArquivo->datamov, 2, 2)."-".substr($oArquivo->datamov, 0, 2);]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(\$oDadosRetorno->registros\[\]\s*=\s*\$oRegistro;)]]></search>
+      <add>
+        <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Observacao ocorrencia] */
            $oRegistro->observacao    = $oArquivo->observacaoob;
+           $1
+           /* [Fim plugin GeracaoArquivoOBN - Observacao ocorrencia] */
         ]]>
       </add>
     </operation>
-
+    
     <operation>
-      <search><![CDATA[$oRegistro->data_efetivacao  = date('Y-m-d');]]></search>
-      <add position="replace">
-        <![CDATA[$oRegistro->data_efetivacao  = substr($oArquivo->datamov, 4, 4)."-".substr($oArquivo->datamov, 2, 2)."-".substr($oArquivo->datamov, 0, 2);]]>
+      <search regex="true"><![CDATA[(case\s*'4'\s*:)]]></search>
+      <add>
+        <![CDATA[$1
+          /* Inicio GeracaoArquivoOBN */
+          $oRegistro = new stdClass();
+          
+          $oRegistro->codigo_movimento = trim((int) $oArquivo->codob);
+          $oRegistro->numero_lote      = "00";
+          $oRegistro->mov_lote         = "0000"; 
+          $oRegistro->codigo_barras        = $oArquivo->codigobarra;
+          $oRegistro->numero_autenticacao  = $oArquivo->numeroautenticacao;
+          $oRegistro->retorno_banco        = $oArquivo->codigoretornooperacao;
+          $oRegistro->codigo_retorno       = $this->getCodigoErro( $oArquivo->codigoretornooperacao );
+          $oRegistro->valor_efetivado  = $oArquivo->valorliqui;
+          $oRegistro->data_efetivacao  = "null";
+
+          $oDadosRetorno->registros[] = $oRegistro;
+        
+        break;
+
+        case '5' :
+
+          $oRegistro = new stdClass();
+
+          $oRegistro->codigo_movimento = trim((int) $oArquivo->codigo_ob);
+          $oRegistro->numero_lote      = "00";
+          $oRegistro->mov_lote         = "0000"; 
+          $oRegistro->codigo_receita       = $oArquivo->cod_rec_tributo;
+          $oRegistro->numero_autenticacao  = $oArquivo->numero_autenticacao;
+          $oRegistro->retorno_banco        = $oArquivo->retorno_operacao;
+          $oRegistro->valor_efetivado  = 0;
+          $oRegistro->data_efetivacao  = "null";
+          $oRegistro->codigo_retorno       = $this->getCodigoErro($oArquivo->retorno_operacao);
+
+          $oDadosRetorno->registros[] = $oRegistro;
+        /* Fim GeracaoArquivoOBN */
+        ]]>
       </add>
     </operation>
-    
   </file>
   
   <file path='model/caixa/arquivos/ProcessamentoPagamentoFornecedor.model.php'>
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - processamento arquivo - parte1] */]]></search>
-      <add position="after">
-        <![CDATA[
+      <search regex="true"><![CDATA[(\$aRegistrosConfigurados\s*=\s*array\(\);)]]></search>
+      <add>
+        <![CDATA[$1
+    /* Inicio GeracaoArquivoOBN */    
+    $aRetornosPagamento = array();
+    /* Fim GeracaoArquivoOBN */
+    ]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(\$oRegistro->codigo_movimento\s*=\s*.*\$oRegistro->codigo_movimento\s*;\n*\s*\$aMovimentosArquivo\[\]\s*=\s*\$oRegistro->codigo_movimento\s*;)]]></search>
+      <add>
+        <![CDATA[/* Inicio GeracaoArquivoOBN */
+      if (isset($oRegistro->numero_autenticacao) && !empty($oRegistro->numero_autenticacao)){
+        
+        $oAutent = new stdClass();
+        $oAutent->empagemov           = (int)$oRegistro->codigo_movimento;
+        $oAutent->codigo_receita      = $oRegistro->codigo_receita;
+        $oAutent->codigo_barras       = $oRegistro->codigo_barras;
+        $oAutent->numero_autenticacao = $oRegistro->numero_autenticacao;
+        if (!in_array($oAutent->empagemov, $aMovimentosArquivo)) {
+          $aMovimentosArquivo[]       = $oAutent->empagemov;  
+        }
+        $aRetornosPagamento[] = $oAutent;
+      } else {
+        
+        $oRegistro->codigo_movimento = (int)$oRegistro->codigo_movimento;
+        $aMovimentosArquivo[]        = $oRegistro->codigo_movimento;
+      }
+      /* Fim GeracaoArquivoOBN */]]>
+      </add>
+    </operation>    
+    
+    <operation>
+      <search regex="true"><![CDATA[(\$oDaoEmpAgeDadosRet->incluir\(.*\)\s*;)]]></search>
+      <add>
+        <![CDATA[$1
+      
+      /* Inicio GeracaoArquivoOBN */  
       $oDaoEmpAgeDadosRetArquivo = db_utils::getDao("empagedadosretarquivo");
       $oDaoEmpAgeDadosRetArquivo->empagedadosret = $oDaoEmpAgeDadosRet->e75_codret; 
       $oDaoEmpAgeDadosRetArquivo->usuario = db_getsession("DB_id_usuario");
@@ -243,306 +240,210 @@ exit;
       $oDaoEmpAgeDadosRetArquivo->arquivo = substr($this->sCaminhoArquivo, (strripos($this->sCaminhoArquivo, "/")+1)) ;
       $oDaoEmpAgeDadosRetArquivo->incluir();
       if ($oDaoEmpAgeDadosRetArquivo->erro_status == "0") {
-         throw new BusinessException("[Erro 3.0] NÃ£o foi possÃ­vel salvar o nome do arquivo processado. - {$oDaoEmpAgeDadosRetArquivo->erro_msg}");
-      } 
+         throw new BusinessException("[Erro 3.0] Não foi possÃ­vel salvar o nome do arquivo processado. - {$oDaoEmpAgeDadosRetArquivo->erro_msg}");
+      }
+      /* Fim GeracaoArquivoOBN */ 
        ]]>
       </add>
     </operation>
+    
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - processamento arquivo - parte2] */
-    if (count($aMovimentosNaoRetornados) > 0) {]]></search>
-      <add position="replace">
-        <![CDATA[
-    /* [Inicio plugin GeracaoArquivoOBN  - processamento arquivo - parte2] */
-    if (count($aMovimentosNaoRetornados) > 0 && $this->iCodigoBancoProcessar != "000") {    
-       ]]>
+      <search regex="true"><![CDATA[(\$aMovimentosNaoRetornados\s*=\s*array_diff\s*\(\s*\$aMovimentoEnviados\s*,\s*\$aMovimentosArquivo\s*\)\s*;)]]></search>
+      <add>
+        <![CDATA[$1
+    
+    /* Inicio GeracaoArquivoOBN */
+    foreach ($aRetornosPagamento as $oRetornoPagamento) {
+      
+      if(!empty($oRetornoPagamento->codigo_barras)) {
+
+        $oDaoEmpAgeMovDetalheTransmissao = db_utils::getDao('empagemovdetalhetransmissao');
+        $sSqlDetalheTransmissao = $oDaoEmpAgeMovDetalheTransmissao->sql_query_file(null, "*", null, "e74_empagemov = {$oRetornoPagamento->empagemov} and e74_codigodebarra = '{$oRetornoPagamento->codigo_barras}'");
+        $rsDetalheTransmissao   = $oDaoEmpAgeMovDetalheTransmissao->sql_record($sSqlDetalheTransmissao);
+        $iDetalheTransmissao    = db_utils::fieldsMemory($rsDetalheTransmissao, 0)->e74_sequencial;
+
+        $oDaoEmpAgeMovDetalheTransmissaoAutenticacao = db_utils::getDao('empagemovdetalhetransmissaoautenticacao');
+        $oDaoEmpAgeMovDetalheTransmissaoAutenticacao->empagemovdetalhetransmissao = $iDetalheTransmissao;
+        $oDaoEmpAgeMovDetalheTransmissaoAutenticacao->numautenticacao             = $oRetornoPagamento->numero_autenticacao;
+        $oDaoEmpAgeMovDetalheTransmissaoAutenticacao->incluir(null);
+        
+        if ($oDaoEmpAgeMovDetalheTransmissaoAutenticacao->erro_status == "0") {
+          throw new BusinessException("[Erro] Não foi possível salvar a autenticação do movimento {$iCodigoMovimentoNaoRetornado}.");
+        }
+
+      } elseif (!empty($oRetornoPagamento->codigo_receita)) {
+        
+        $oDaoEmpAgeMovPagamento = db_utils::getDao('empagemovpagamento');
+        $sSqlEmpAgeMovPagamento = $oDaoEmpAgeMovPagamento->sql_query_empagemov("empagemovpagamento.*", "", "empagemov = {$oRetornoPagamento->empagemov} and codreceita = {$oRetornoPagamento->codigo_receita}");
+        $rsEmpAgeMovPagamento   = $oDaoEmpAgeMovPagamento->sql_record($sSqlEmpAgeMovPagamento);
+        $iEmpAgeMovPagamento    = db_utils::fieldsMemory($rsEmpAgeMovPagamento, 0)->sequencial;
+
+        $oDaoEmpAgeMovPagamentoAutenticacao = db_utils::getDao('empagemovpagamentoautenticacao');
+        $oDaoEmpAgeMovPagamentoAutenticacao->empagemovpagamento = $iEmpAgeMovPagamento;
+        $oDaoEmpAgeMovPagamentoAutenticacao->numautenticacao    = $oRetornoPagamento->numero_autenticacao;
+        $oDaoEmpAgeMovPagamentoAutenticacao->incluir(null);
+
+        if ($oDaoEmpAgeMovPagamentoAutenticacao->erro_status == "0") {
+          throw new BusinessException("[Erro] Não foi possível salvar a autenticação do movimento {$iCodigoMovimentoNaoRetornado}.");
+        }
+      
+      }
+
+    }
+    /* Fim GeracaoArquivoOBN */]]>
       </add>
     </operation>
-    <operation>        
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - processamento arquivo - parte3] */]]></search>
-      <add position="after">
+    
+    <operation>
+      <search regex="true"><![CDATA[if\s*\(\s*count\(\s*\$aMovimentosNaoRetornados\).*\)\s*{]]></search>
+      <add>
         <![CDATA[
+    /* Inicio GeracaoArquivoOBN */
+    if (count($aMovimentosNaoRetornados) > 0 && $this->iCodigoBancoProcessar != "000") {
+    /* Fim GeracaoArquivoOBN */]]>
+      </add>
+    </operation>
+    
+    <operation>        
+      <search regex="true"><![CDATA[(\$this->devolverMovimentoParaAgenda\(\s*\$iCodigoMovimentoNaoRetornado\s*\);)]]></search>
+      <add>
+        <![CDATA[
+          $1
+          
+          /* Inicio GeracaoArquivoOBN */
           if (trim($this->oRegistroArquivo->registros[0]->observacao) != "") {
             $oDaoEmpAgeDadosRetMovOcorrenciaObservacao = db_utils::getDao("empagedadosretmovocorrenciaobservacao");
             $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->empagedadosretmovocorrencia = $oDaoEmpAgeDadosRetMovOcorrencia->e02_sequencial; 
             $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->observacao = $this->oRegistroArquivo->registros[0]->observacao;
             $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->incluir();
             if ($oDaoEmpAgeDadosRetMovOcorrencia->erro_status == "0") {
-                throw new BusinessException("[Erro 3.1] NÃ£o foi possÃ­vel salvar a ocorrÃªncia para o movimento {$iCodigoMovimentoNaoRetornado}. - {$oDaoEmpAgeDadosRetMovOcorrenciaObservacao->erro_msg}");
+                throw new BusinessException("[Erro 3.1] Não foi possível salvar a ocorrência para o movimento {$iCodigoMovimentoNaoRetornado}. - {$oDaoEmpAgeDadosRetMovOcorrenciaObservacao->erro_msg}");
             }
           }
+          /* Fim GeracaoArquivoOBN */
         ]]>
       </add>
     </operation>
+    
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - processamento arquivo - parte4] */]]></search>
-      <add position="after">
-        <![CDATA[
+      <search regex="true"><![CDATA[(if\s*\(in_array\s*\(\s*\$iCodigoMovimento,\s*\$aMovimentosCancelados\s*\)\s*\)\s*{\n*\s*continue\s*;\s*\n*\s*})]]></search>
+      <add>
+        <![CDATA[$1
+      /* Inicio GeracaoArquivoOBN */
+        
+      /*
+       * Verifica se o movimento possui cód. de barras (linha tipo 4) ou cód. de receita (linha tipo 5)
+       * Se tiver, não cria retorno, pois a linha tipo 2 que o precede já tem um retorno 
+       */
+      $iTotalGRU = 0; 
+      $sSqlVerificaQtdProc = "select coalesce(count(*),0) as qtd 
+                                from empagedadosretmov 
+                               where e76_codmov = {$iCodigoMovimento} 
+                                 and e76_processado = 't'";
+      $rsQuantProc = db_query($sSqlVerificaQtdProc);
+      $iTotalGRU   = db_utils::fieldsMemory($rsQuantProc, 0)->qtd;   
+      if ((isset($oMovimentoRetorno->codigo_barras) || isset($oMovimentoRetorno->codigo_receita)) && $iTotalGRU > 0) {
+        continue;
+      }
+      /* Fim GeracaoArquivoOBN */]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(if\s*\(\$oDaoEmpAgeDadosRetMovOcorrencia->erro_status\s*==\s*"0"\s*\)\s*{\n*\s*throw.*BusinessException\("\[Erro.*\].*salvar\s*a.*movimento.*{\$iCodigoMovimento}."\);\n*\s*})]]></search>
+      <add>
+        <![CDATA[$1
+      /* Inicio GeracaoArquivoOBN */  
       if (trim($oMovimentoRetorno->observacao) != "") {
         $oDaoEmpAgeDadosRetMovOcorrenciaObservacao = db_utils::getDao("empagedadosretmovocorrenciaobservacao");
         $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->empagedadosretmovocorrencia = $oDaoEmpAgeDadosRetMovOcorrencia->e02_sequencial;
         $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->observacao = "{$oMovimentoRetorno->observacao}";
         $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->incluir();
         if ($oDaoEmpAgeDadosRetMovOcorrenciaObservacao->erro_status == "0") {
-          throw new BusinessException("[Erro 6.1] NÃ£o foi possÃ­vel salvar a ocorrÃªncia para o movimento {$iCodigoMovimento} - $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->erro_msg");
+          throw new BusinessException("[Erro 6.1] Não foi possível salvar a ocorrência para o movimento {$iCodigoMovimento} - $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->erro_msg");
         }
       }
-        ]]>
-      </add>
-    </operation>         
-  </file>
-  
-  <file path='emp2_gerarq002.php'>
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - relatorio arquivos gerados] */]]></search>
-      <add position="after">
-        <![CDATA[
-require_once("emp2_pluginGeracaoArquivoOBNRelatorioArquivosGerados002.php");
-exit;
+      /* Fim GeracaoArquivoOBN */
         ]]>
       </add>
     </operation>
+    
     <operation>
-      <search><![CDATA[	  pc63_dataconf,
-	  e60_codemp,]]></search>
-      <add position="after">
-        <![CDATA[
-	(case when empagemovtipotransmissaofatura.fatura = 't' then 2 else 1 end) as comfatura,]]>
+      <search regex="true"><![CDATA[(if\s*\(\$oDaoConfGera->numrows\s*==\s*0\)\s*\{)]]></search>
+      <add>
+        <![CDATA[$1
+        /* Inicio GeracaoArquivoOBN */
+        continue;
+        /* Fim GeracaoArquivoOBN */
+        ]]>
       </add>
-    </operation>
-
-    <operation>
-      <search><![CDATA[	  left join pcfornecon on pc63_contabanco = e98_contabanco
-	  left join cgm on z01_numcgm = pc63_numcgm]]></search>
-      <add position="after">
-        <![CDATA[
-	left join plugins.empagemovtipotransmissaofatura on e25_sequencial = empagemovtipotransmissaofatura.empagemovtipotransmissao]]>
-      </add>
-    </operation>
-
-    <operation>
-      <search><![CDATA[	  pc63_dataconf,
-	  'slip' as e60_codemp,]]></search>
-      <add position="after">
-        <![CDATA[
-	(case when empagemovtipotransmissaofatura.fatura = 't' then 2 else 1 end) as comfatura,]]>
-      </add>
-    </operation>
-
-    <operation>
-      <search><![CDATA[       left join conplano concre           on concre.c60_codcon  = cre.c61_codcon
-                                          and concre.c60_anousu  = cre.c61_anousu
-
-       left join conplanoconta descrconta  on concre.c60_codcon  = descrconta.c63_codcon
-                                          and concre.c60_anousu  = descrconta.c63_anousu]]></search>
-      <add position="after">
-        <![CDATA[
-	left join plugins.empagemovtipotransmissaofatura on e25_sequencial = empagemovtipotransmissaofatura.empagemovtipotransmissao]]>
-      </add>
-    </operation>
+    </operation>    
   </file>
   
   <file path='emp4_inconsistenciaarquivoretorno002.php'>
     <operation>
-      <search><![CDATA[$oDaoEmpAgeDadosRet = new cl_empagedadosret();]]></search>
-      <add position="replace">
-        <![CDATA[$oDaoEmpAgeDadosRet = db_utils::getDao("empagedadosretmovocorrenciaobservacao");]]>
-      </add>
-    </operation>
-    <operation>
-      <search><![CDATA[$sSqlCampos .= " e92_coderro ||' - '||e92_descrerro as erro_banco ";]]></search>
-      <add position="replace">
-        <![CDATA[$sSqlCampos       .= " e92_coderro ||' - '||e92_descrerro||' - '||observacao as erro_banco ";]]>
-      </add>
-    </operation>
-    <operation>
-      <search><![CDATA[$aWidth   = array( 20, 20, 20, 25, 30, 70 );]]></search>
-      <add position="replace">
-        <![CDATA[$aWidth   = array( 20, 20, 20, 25, 30, 160 );]]>
-      </add>
-    </operation>
-  </file>
-  
-  /**
-   * FATURA
-   */
-  <file path='emp4_configuracaoarquivoenvio001.php'>
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte0] */]]></search>
-      <add position="after">
-        <![CDATA[
-                var faturaAnexo = (oDado.fatura == "t") ? "Sim" : "NÃ£o";
-        ]]>
+      <search regex="true"><![CDATA[(\$oDaoEmpAgeDadosRet\s*=\s*new\s*cl_empagedadosret\(\);)]]></search>
+      <add>
+        <![CDATA[/* Inicio GeracaoArquivoOBN */
+$oDaoEmpAgeDadosRet = db_utils::getDao("empagedadosretmovocorrenciaobservacao");
+/* Fim GeracaoArquivoOBN */]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte1] */
-                aRow[6] = "<input type='button' value='Editar' onclick='js_criaJanelaDetalhes("+oDado.e81_codmov+", "+oDado.o15_codigo+");'  ";]]></search>
-      <add position="replace">
-        <![CDATA[
-               /* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte1] */
-                aRow[6] = (oDado.fatura == "t") ? "Sim" : "NÃ£o";
-                aRow[7] = "<input type='button' value='Editar' onclick='js_criaJanelaDetalhes("+oDado.e81_codmov+", "+oDado.o15_codigo+");'  ";
-        ]]>
+      <search regex="true"><![CDATA[\$sSqlCampos\s*.=\s*"\s*e92_coderro\s*.*e92_descrerro\s*as\s*erro_banco\s*";]]></search>
+      <add>
+        <![CDATA[/* Inicio GeracaoArquivoOBN */
+$sSqlCampos       .= " e92_coderro ||' - '||e92_descrerro||' - '||observacao as erro_banco ";
+/* Fim GeracaoArquivoOBN */]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte2] */
-              aRow[6] = "<input type='button' value='Editar' onclick='js_criaJanelaDetalhes("+oDado.e81_codmov+", "+oDado.c61_codigo+");'  ";]]></search>
-      <add position="replace">
-        <![CDATA[
-             /* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte2] */
-              aRow[6] = (oDado.fatura == "t") ? "Sim" : "NÃ£o";
-              aRow[7] = "<input type='button' value='Editar' onclick='js_criaJanelaDetalhes("+oDado.e81_codmov+", "+oDado.c61_codigo+");'  ";
-         
-              aValoresMovimentos[oDado.e81_codmov] = oDado.k17_valor;
-        ]]>
+      <search regex="true"><![CDATA[\$aWidth.*array\s*\(\s*20\s*,\s*20\s*,\s*20\s*,\s*25\s*,\s*30\s*,\s*70\s*\);]]></search>
+      <add>
+        <![CDATA[/* Inicio GeracaoArquivoOBN */
+$aWidth   = array( 20, 20, 20, 25, 30, 160 );
+/* Fim GeracaoArquivoOBN */]]>
       </add>
     </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte3] */]]></search>
-      <add position="after">
-        <![CDATA[
-              oParametros.fatura        = $F('iFatura');
-        ]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[  /* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte4] */
-  oGridConfiguracao.setCellWidth(new Array( '100px' ,
-                                            '100px',
-                                            '100px',
-                                            '200px',
-                                            '200px',
-                                            '100px',
-                                            '80px'
-                                           ));
-  oGridConfiguracao.setCellAlign(new Array( 'left'  ,
-                                            'left'  ,
-                                            'left',
-                                            'left',
-                                            'left',
-                                            'right',
-                                            'center'
-                                           ));
-  oGridConfiguracao.setHeader(new Array( 'CÃ³d.Mov',
-                                         'Emp. / Slip',
-                                         'Recurso',
-                                         'Cta. Pagadora',
-                                         'Nome',
-                                         'Valor',
-                                         'AÃ§Ã£o'
-                                        ));]]></search>
-      <add position="replace">
-        <![CDATA[
-         /* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte4] */
-         oGridConfiguracao.setCellWidth(new Array( '100px' ,
-                                                   '100px',
-                                                   '100px',
-                                                   '200px',
-                                                   '200px',
-                                                   '100px',
-                                                   '100px',
-                                                   '80px'
-                                                  ));
-         oGridConfiguracao.setCellAlign(new Array( 'left'  ,
-                                                   'left'  ,
-                                                   'left',
-                                                   'left',
-                                                   'left',
-                                                   'right',
-                                                   'center',
-                                                   'center'
-                                                  ));
-         oGridConfiguracao.setHeader(new Array( 'CÃ³d.Mov',
-                                                'Emp. / Slip',
-                                                'Recurso',
-                                                'Cta. Pagadora',
-                                                'Nome',
-                                                'Valor',
-                                                'Fatura Anexo',
-                                                'AÃ§Ã£o'
-                                               ));
-        ]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte5] */]]></search>
-      <add position="after">
-        <![CDATA[
-      sConteudoDetalhes += "      <tr nowrap>     ";
-      sConteudoDetalhes += "        <td >   ";
-      sConteudoDetalhes += "         <strong> Com Fatura Anexo? </strong>  ";
-      sConteudoDetalhes += "        </td>  ";
-      sConteudoDetalhes += "        <td align='left'>   ";
-      sConteudoDetalhes += "           <select id='iFatura' name='iFatura' style='width:100px;' >";
-      sConteudoDetalhes += "             <option value='f'>NÃ£o</option>           ";
-      sConteudoDetalhes += "             <option value='t'>Sim</option>         ";
-      sConteudoDetalhes += "           </select>";
-      sConteudoDetalhes += "        </td>  ";
-      sConteudoDetalhes += "      </tr>    ";
-        ]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte6] */]]></search>
-      <add position="after">
-        <![CDATA[
-                          $('iFatura').disabled           = true;
-        ]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte7] */]]></search>
-      <add position="after">
-        <![CDATA[
-                          $('iFatura').disabled           = false;
-        ]]>
-      </add>
-    </operation>
-    
   </file>
   
   <file path='emp4_configuracaoarquivoenvio.RPC.php'>
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN] */]]></search>
-      <add position="after">
-        <![CDATA[
-                $oDaoEmpAgeMovTipoTransmissaoFatura = db_utils::getDao("empagemovtipotransmissaofatura");
-                $oDaoEmpAgeMovTipoTransmissaoFatura->empagemovtipotransmissao  = $oDadosEmpAgeMovTipoTransmissao->e25_sequencial;
-                $oDaoEmpAgeMovTipoTransmissaoFatura->fatura                    = "{$oParam->fatura}";
-                $rsEmpAgeMovTipoTransmissaoFatura = $oDaoEmpAgeMovTipoTransmissaoFatura->sql_record($oDaoEmpAgeMovTipoTransmissaoFatura->sql_query_file(null, "*", null, "empagemovtipotransmissao = {$oDadosEmpAgeMovTipoTransmissao->e25_sequencial}"));
-                if ($oDaoEmpAgeMovTipoTransmissaoFatura->numrows == 0) {
-                     
-                    $oDaoEmpAgeMovTipoTransmissaoFatura->sequencial = null;
-                    $oDaoEmpAgeMovTipoTransmissaoFatura->incluir();
-                     
-                } else {
-                     
-                    $oDadosEmpAgeMovTipoTransmissao->e25_sequencial = db_utils::fieldsMemory($rsEmpAgeMovTipoTransmissaoFatura,0)->sequencial;
-                    $oDaoEmpAgeMovTipoTransmissaoFatura->alterar($oDadosEmpAgeMovTipoTransmissao->e25_sequencial);
-                     
-                }
-                if ($oDaoEmpAgeMovTipoTransmissaoFatura->erro_status == 0) {
-                    throw new DBException("ERRO [ 1 ] - Alterando informacao de fatura para o Movimento " . $oDaoEmpAgeMovTipoTransmissaoFatura->erro_msg);
-                }
-        ]]>
+      <search regex="true" flag="U"><![CDATA[(\$oDaoEmpAgeMovTipoTransmissao->alterar((\n*.*)*)})]]></search>
+      <add>
+        <![CDATA[$1
+        
+        /* Inicio GeracaoArquivoOBN */
+        $oDaoEmpAgeMovTipoTransmissaoFatura = db_utils::getDao("empagemovtipotransmissaofatura");
+        $oDaoEmpAgeMovTipoTransmissaoFatura->empagemovtipotransmissao  = $oDadosEmpAgeMovTipoTransmissao->e25_sequencial;
+        $oDaoEmpAgeMovTipoTransmissaoFatura->fatura                    = "{$oParam->fatura}";
+        $rsEmpAgeMovTipoTransmissaoFatura = $oDaoEmpAgeMovTipoTransmissaoFatura->sql_record($oDaoEmpAgeMovTipoTransmissaoFatura->sql_query_file(null, "*", null, "empagemovtipotransmissao = {$oDadosEmpAgeMovTipoTransmissao->e25_sequencial}"));
+        if ($oDaoEmpAgeMovTipoTransmissaoFatura->numrows == 0) {
+             
+            $oDaoEmpAgeMovTipoTransmissaoFatura->sequencial = null;
+            $oDaoEmpAgeMovTipoTransmissaoFatura->incluir();
+             
+        } else {
+             
+            $oDadosEmpAgeMovTipoTransmissao->e25_sequencial = db_utils::fieldsMemory($rsEmpAgeMovTipoTransmissaoFatura,0)->sequencial;
+            $oDaoEmpAgeMovTipoTransmissaoFatura->alterar($oDadosEmpAgeMovTipoTransmissao->e25_sequencial);
+             
+        }
+        if ($oDaoEmpAgeMovTipoTransmissaoFatura->erro_status == 0) {
+            throw new DBException("ERRO [ 1 ] - Alterando informacao de fatura para o Movimento " . $oDaoEmpAgeMovTipoTransmissaoFatura->erro_msg);
+        }
+        /* Fim GeracaoArquivoOBN */]]>
       </add>
     </operation>
   </file>
-    
+  
   <file path='model/agendaPagamento.model.php'>
     <operation>
-      <search><![CDATA[(select e25_empagetipotransmissao from empagemovtipotransmissao where e25_empagemov = e81_codmov limit 1) as e25_empagetipotransmissao,]]></search>
-      <add position="after">
-        <![CDATA[
+      <search regex="true" flag="U"><![CDATA[(as\s*e25_empagetipotransmissao\s*,)]]></search>
+      <add>
+        <![CDATA[$1
       (select fatura 
          from plugins.empagemovtipotransmissaofatura 
               inner join empagemovtipotransmissao on empagemovtipotransmissao = e25_sequencial 
@@ -550,68 +451,91 @@ exit;
         limit 1) as fatura,]]>
       </add>
     </operation>
+    
+    <!--
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte1] */]]></search>
-      <add position="after">
-        <![CDATA[
-    $sCampos  .= "(select fatura                                ";
-    $sCampos  .= "  from plugins.empagemovtipotransmissaofatura ";
-    $sCampos  .= "       inner join empagemovtipotransmissao on empagemovtipotransmissao = e25_sequencial ";
-    $sCampos  .= " where e25_empagemov = e81_codmov             ";
-    $sCampos  .= " limit 1 ) as fatura,                        ";]]>
-      </add>
-    </operation>    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte2] */    
-    $sCampos  .= " e98_contabanco as conta_configurada,                   ";]]></search>
-      <add position="replace">
-        <![CDATA[
-    /* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte2] */    
-    $sCampos  .= "(select pc.pc63_contabanco                ";
-    $sCampos  .= " from  conplanoconta                   ";
-    $sCampos  .= "       inner join pcfornecon pc on pc.pc63_banco = c63_banco and pc.pc63_agencia = c63_agencia ";
-    $sCampos  .= "                  and pc.pc63_conta = c63_conta and pc.pc63_conta_dig = c63_dvconta            ";                        
-    $sCampos  .= "                  and pc.pc63_agencia_dig = c63_dvagencia                                      "; 
-    $sCampos  .= " where c63_codcon = x.c61_codcon and c63_anousu = x.c61_anousu and pc.pc63_numcgm = z01_numcgm ";             
-    $sCampos  .= "  limit 1) as conta_configurada,                                                               ";]]>
+      <search regex="true"><![CDATA[(\$sCampos\s*.=\s*"\s*e98_contabanco\s*as\s*conta_configurada\s*,\s*"\s*;)]]></search>
+      <add>
+        <![CDATA[$1
+    /* Inicio GeracaoArquivoOBN */    
+    $sCampos  .= "(select pc.pc63_contabanco                                              ";
+    $sCampos  .= "   from conplanoconta                                                   ";
+    $sCampos  .= "        inner join pcfornecon pc on pc.pc63_banco = c63_banco           ";
+    $sCampos  .= "                                and pc.pc63_agencia = c63_agencia       ";
+    $sCampos  .= "                                and pc.pc63_conta = c63_conta           ";
+    $sCampos  .= "                                and pc.pc63_conta_dig = c63_dvconta     ";                        
+    $sCampos  .= "                                and pc.pc63_agencia_dig = c63_dvagencia "; 
+    $sCampos  .= "  where c63_codcon = x.c61_codcon                                       ";
+    $sCampos  .= "    and c63_anousu = x.c61_anousu                                       ";
+    $sCampos  .= "    and pc.pc63_numcgm = z01_numcgm                                     ";             
+    $sCampos  .= "  limit 1) as conta_configurada,                                        ";
+    /* Fim GeracaoArquivoOBN */]]>
       </add>
     </operation>
-  </file>   
+    -->
+  </file>
   
   <file path='model/caixa/ConfiguracaoArquivoObn.model.php'>
+   <operation>
+      <search regex="true"><![CDATA[(const\s*LAYOUT4\s*=\s*4\s*;)]]></search>
+      <add >
+        <![CDATA[/* Inicio GeracaoArquivoOBN */      
+  const LAYOUT5      = 5;
+  /* Fim GeracaoArquivoOBN */
+  $1]]>
+      </add>
+    </operation>
+    
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte1] */]]></search>
-      <add position="after">
-        <![CDATA[
+      <search regex="true"><![CDATA[(const\s*OPERACAO_CODIGO_BARRAS\s*=.*;)]]></search>
+      <add>
+        <![CDATA[$1
+  /* Inicio GeracaoArquivoOBN */      
   const OPERACAO_SLIP_CONTAUNICA    = 17;
   const OPERACAO_COM_FATURA    = 33;
   const OPERACAO_SLIP_OUTRASCONTAS  = 37;
+  /* Fim GeracaoArquivoOBN */
         ]]>
       </add>
     </operation>
+    
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte2] */]]></search>
-      <add position="after">
+      <search regex="true"><![CDATA[(\$sCodigoBarras\s*=\s*\$oDadosMovimentacao->getCodigoBarra\(\);\n*\s*if\s*\(.*\).*\n*.*\n*\s*})]]></search>
+      <add>
         <![CDATA[
-    // Se o Movimento estiver marcado como fatura (Sim = t) entÃ£o tipo = 33
+    /* Inicio GeracaoArquivoOBN */    
+    $sCodigoBarras  = $oDadosMovimentacao->getCodigoBarra();
+    $iCodigoReceita = $oDadosMovimentacao->getCodReceita();
+    
+    if (!empty ($sCodigoBarras) || !empty($iCodigoReceita)) {
+      return ConfiguracaoArquivoObn::OPERACAO_CODIGO_BARRAS;
+    }
+
+    // Se o Movimento estiver marcado como fatura (Sim = t) então tipo = 33
     if ($oDadosMovimentacao->getComFatura() == "t") {
        return ConfiguracaoArquivoObn::OPERACAO_COM_FATURA;
     }
 
     if ($oDadosMovimentacao->getSlipVinculo() == 13) {
-      if ($oDadosMovimentacao->getCodigoBancoFavorecido() == $oDadosMovimentacao->getCodigoBancoPagador()) { 
+      if (
+            /* Plugin */ 
+            $oDadosMovimentacao->getCodigoBancoFavorecido() == $oDadosMovimentacao->getCodigoBancoPagador() ) { 
         return ConfiguracaoArquivoObn::OPERACAO_DEP;
       } else { // Banco Diferente
           return ConfiguracaoArquivoObn::OPERACAO_DOC;
       }
     }
-        ]]>
+    /* Fim GeracaoArquivoOBN */]]>
       </add>
     </operation>
+    
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte3] */]]></search>
-      <add position="after">
+      <search regex="true" flag="U"><![CDATA[(if\s*\(\$oDadosMovimentacao->getCodigoBancoFavorecido\(\)\s*==\s*\$oDadosMovimentacao->getCodigoBancoPagador\(\)\s*\)\s*{)((\n*.*)*)(return\s*ConfiguracaoArquivoObn::OPERACAO_DEP;\n*\s*\})]]></search>
+      <add>
         <![CDATA[
+      /* Inicio GeracaoArquivoOBN */ 
+    if ($oDadosMovimentacao->getCodigoBancoFavorecido() == $oDadosMovimentacao->getCodigoBancoPagador()) {
+        
       if ($oDadosMovimentacao->getCodigoSlip() != null) {
         if ($oDadosMovimentacao->getContaPagadora().$oDadosMovimentacao->getDigitoVerificadorContaPagadora() == "70009"){
           return ConfiguracaoArquivoObn::OPERACAO_SLIP_CONTAUNICA;
@@ -628,27 +552,25 @@ exit;
         } else {
           return ConfiguracaoArquivoObn::OPERACAO_SLIP_OUTRASCONTAS;
         }
-      }]]>
+      }
+      
+      return ConfiguracaoArquivoObn::OPERACAO_DEP;
+    } else { // Banco Diferente
+        return ConfiguracaoArquivoObn::OPERACAO_DOC;
+      }
+      /* Fim GeracaoArquivoOBN */]]>
       </add>
     </operation>
+    
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte4] */]]></search>
-      <add position="after">
+      <search regex="true"><![CDATA[(public\s*static\s*function\s*verificaTipoLinha\s*\()]]></search>
+      <add>
         <![CDATA[
-    else { // Banco Diferente
-      return ConfiguracaoArquivoObn::OPERACAO_DOC;
-    }
-        ]]>
-      </add>
-    </operation>
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao arquivo OBN - parte5] */]]></search>
-      <add position="after">
-        <![CDATA[
+  /* Inicio GeracaoArquivoOBN */
   /**
-   * FunÃ§Ã£o que verifica o layout em que a linha serÃ¡ gerada
-   * Caso nÃ£o exista cadastro de detalhe (cÃ³digo de barras) serÃ¡ o LAYOUT3
-   * SenÃ£o tipo LAYOUT4
+   * Função que verifica o layout em que a linha será gerada
+   * Caso não exista cadastro de detalhe (código de barras) será o LAYOUT3
+   * Senão tipo LAYOUT4
    * @return Integer
    */
   public static function verificaTipoLinha_2($sCodigoDeBarras, $iCodigoReceita, $iSlip, $iCodigoBancoFavorecido, $iSlipVinculo) {
@@ -664,7 +586,7 @@ exit;
     if ($iSlip != null){
 
     if ($iCodigoBancoFavorecido == '001') {
-        if ($iSlipVinculo == 13) { // Slip de RetenÃ§Ã£o
+        if ($iSlipVinculo == 13) { // Slip de Retenção
             return ConfiguracaoArquivoObn::LAYOUT2;
         } else {
             return ConfiguracaoArquivoObn::LAYOUT3;
@@ -682,16 +604,20 @@ exit;
     }
     return 0;
   }
-        ]]>
+  /* Fim GeracaoArquivoOBN */
+  
+$1]]>
       </add>
     </operation>
   </file>
-    
-  <file path='model/caixa/MovimentoArquivoTransmissao.model.php'>
+  
+<file path='model/caixa/MovimentoArquivoTransmissao.model.php'>
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - processamento arquivo OBN - parte1] */]]></search>
-      <add position="after">
-        <![CDATA[
+      <search regex="true"><![CDATA[(private\s*\$lProcessado;)]]></search>
+      <add>
+        <![CDATA[$1
+        
+  /* Inicio GeracaoArquivoOBN */
   /**
    * Orgao
    * @var Integer
@@ -705,24 +631,239 @@ exit;
   private $iUnidade;  
   
   /**
-   * Codigo com ou sem fatura (f - NÃ£o, t - Sim)
+   * Codigo com ou sem fatura (f - Não, t - Sim)
    * @var integer
    */
   private $iComFatura;
-        ]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - processamento arquivo OBN - parte2] */]]></search>
-      <add position="after">
-        <![CDATA[
+  /**
+   * Código do Tipo de Pagamento
+   * @var Integer
+   */
+  private $iTipoPagamento;
+  /**
+   * Código de Receita do Tributo
+   * @var Integer
+   */
+  private $iCodReceita;
+  /**
+   * Código de Identificação do Tributo
+   * @var Integer
+   */
+  private $iCodIdentificacao;
+  /**
+   * Período de Apuração
+   * @var Date
+   */
+  private $dPeriodoApuracao;
+  /**
+   * Data de Vencimento
+   * @var Date
+   */
+  private $dDataVencimento;
+  /**
+   * Mês e Ano de Competência
+   * @var String
+   */
+  private $sMesAnoCompetencia;
+  /**
+   * Número de Referência
+   * @var number
+   */
+  private $nNumReferencia;
+  /**
+   * Valor do INSS
+   * @var number
+   */
+  private $nValorINSS;
+  /**
+   * Valor de Outras Entidades
+   * @var number
+   */
+  private $nValorOutras;
+  /**
+   * Atualização Monetária
+   * @var number
+   */
+  private $nAtualizacaoMonetaria;
+  /**
+   * Valor da Receita Bruta
+   * @var number
+   */
+  private $nValorReceitaBruta;
+  /**
+   * Percentual da Receita
+   * @var number
+   */
+  private $nPercentualReceita;
+  /**
+   * Valor Principal
+   * @var number
+   */
+  private $nValorPrincipal;
+  /**
+   * Valor da Multa
+   * @var number
+   */
+  private $nValorMulta;
+  /**
+   * Valor de Juros e Encargos
+   * @var number
+   */
+  private $nJurosEncargos;
+
+  /**
+   * Data do Pagamento
+   * @var date
+   */
+  private $dtPagamento;
+
   /**
    * Slip Vinculo 
    * @var integer
    */
   private $iSlipVinculo;
 
+
+  public function getTipoPagamento() {
+
+    return $this->iTipoPagamento;
+  }
+
+  public function setTipoPagamento($iTipoPagamento) {
+
+    $this->iTipoPagamento = $iTipoPagamento;
+  }
+
+  public function getCodReceita() {
+
+    return $this->iCodReceita;
+  }
+
+  public function setCodReceita($iCodReceita) {
+
+    $this->iCodReceita = $iCodReceita;
+  }
+
+  public function getCodIdentificacao() {
+
+    return $this->iCodIdentificacao;
+  }
+
+  public function setCodIdentificacao($iCodIdentificacao) {
+
+    $this->iCodIdentificacao = $iCodIdentificacao;
+  }
+
+  public function getPeriodoApuracao() {
+
+    return $this->dPeriodoApuracao;
+  }
+
+  public function setPeriodoApuracao($dPeriodoApuracao) {
+
+    $this->dPeriodoApuracao = $dPeriodoApuracao;
+  }
+
+  public function getMesAnoCompetencia() {
+    
+    return $this->sMesAnoCompetencia;
+  }
+
+  public function setMesAnoCompetencia($sMesAnoCompetencia) {
+
+    $this->sMesAnoCompetencia = $sMesAnoCompetencia;
+  }
+
+  public function getNumReferencia() {
+
+    return $this->nNumReferencia;
+  }
+
+  public function setNumReferencia($nNumReferencia) {
+
+    $this->nNumReferencia = $nNumReferencia;
+  }
+
+  public function getValorINSS() {
+    
+    return $this->nValorINSS;
+  }
+
+  public function setValorINSS($nValorINSS) {
+
+    $this->nValorINSS = $nValorINSS;
+  }
+
+  public function getValorOutras() {
+
+    return $this->nValorOutras;
+  }
+
+  public function setValorOutras($nValorOutras) {
+
+    $this->nValorOutras = $nValorOutras;
+  }
+
+  public function getAtualizacaoMonetaria() {
+
+    return $this->nAtualizacaoMonetaria;
+  }
+
+  public function setAtualizacaoMonetaria($nAtualizacaoMonetaria) {
+
+    $this->nAtualizacaoMonetaria = $nAtualizacaoMonetaria;
+  }
+
+  public function getValorReceitaBruta() {
+
+    return $this->nValorReceitaBruta;
+  }
+
+  public function setValorReceitaBruta($nValorReceitaBruta) {
+
+    $this->nValorReceitaBruta = $nValorReceitaBruta;
+  }
+
+  public function getPercentualReceita() {
+
+    return $this->nPercentualReceita;
+  }
+
+  public function setPercentualReceita($nPercentualReceita) {
+
+    $this->nPercentualReceita = $nPercentualReceita;
+  }
+
+  public function getValorPrincipal() {
+
+    return $this->nValorPrincipal;
+  }
+
+  public function setValorPrincipal($nValorPrincipal) {
+
+    $this->nValorPrincipal = $nValorPrincipal;
+  }
+
+  public function getValorMulta() {
+
+    return $this->nValorMulta;
+  }
+
+  public function setValorMulta($nValorMulta) {
+
+    $this->nValorMulta = $nValorMulta;
+  }
+
+  public function getJurosEncargos() {
+
+    return $this->nJurosEncargos;
+  }
+
+  public function setJurosEncargos($nJurosEncargos) {
+
+    $this->nJurosEncargos = $nJurosEncargos;
+  }
+        
   public function getOrgao() {
       return $this->sOrgao;
   }
@@ -754,26 +895,73 @@ exit;
   public function getSlipVinculo() {
     return $this->iSlipVinculo;
   }
-        ]]>
+
+  /**
+   * @return date
+   */
+  public function getDtPagamento() {
+    return $this->dtPagamento;
+  }
+  
+  /**
+   * @param date $dtPagamento
+   * @return self
+   */
+  public function setDtPagamento($dtPagamento) {
+
+    $this->dtPagamento = $dtPagamento;
+    return $this;
+  }
+        
+  /* Fim GeracaoArquivoOBN */
+]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - processamento arquivo OBN - parte3] */]]></search>
-      <add position="after">
-        <![CDATA[
+      <search regex="true"><![CDATA[((\$oDadosLinha->setCodigoBarra\(\$oStdResultadoQuery->e74_codigodebarra\);))]]></search>
+      <add>
+        <![CDATA[$1
+        
+    /* Inicio GeracaoArquivoOBN */
     $oDadosLinha->setOrgao($oStdResultadoQuery->orgao);
     $oDadosLinha->setUnidade($oStdResultadoQuery->unidade);
     $oDadosLinha->setComFatura($oStdResultadoQuery->comfatura);
     $oDadosLinha->setSlipVinculo($oStdResultadoQuery->slipvinculo);
-        ]]>
+    
+    /* 
+     * Os setters abaixo, assim como os da linha 4, não estão sendo utilizados no momento,
+     * em razão das funções geradoras das linhas 4 e 5 que foram modificadas no model GeradorArquivoObn 
+     * para receberem um parametro com os dados do empagemovdetalhetransmissao (fatura/convênio) e plugins.empagemovpagamento (GRU)
+     */
+    $oDadosLinha->setTipoPagamento($oStdResultadoQuery->tipopagamento);
+    $oDadosLinha->setCodReceita($oStdResultadoQuery->codreceita);
+    $oDadosLinha->setCodIdentificacao($oStdResultadoQuery->codidentificacao);
+    $oDadosLinha->setPeriodoApuracao($oStdResultadoQuery->periodoapuracao);
+    $oDadosLinha->setDataVencimento($oStdResultadoQuery->datavencimento);
+    $oDadosLinha->setMesAnoCompetencia($oStdResultadoQuery->mesanocompetencia);
+    $oDadosLinha->setNumReferencia($oStdResultadoQuery->numreferencia);
+    $oDadosLinha->setValorINSS($oStdResultadoQuery->valorinss);
+    $oDadosLinha->setValorOutras($oStdResultadoQuery->valoroutras);
+    $oDadosLinha->setAtualizacaoMonetaria($oStdResultadoQuery->atualizacaomonetaria);
+    $oDadosLinha->setValorReceitaBruta($oStdResultadoQuery->valorreceitabruta);
+    $oDadosLinha->setPercentualReceita($oStdResultadoQuery->percentualreceita);
+    $oDadosLinha->setValorPrincipal($oStdResultadoQuery->valorprincipal);
+    $oDadosLinha->setValorMulta($oStdResultadoQuery->valormulta);
+    $oDadosLinha->setJurosEncargos($oStdResultadoQuery->jurosencargos);
+    /* Fim GeracaoArquivoOBN */
+    
+]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - processamento arquivo OBN - parte4] */]]></search>
-      <add position="after">
+      <search regex="true"><![CDATA[(public\s*static\s*function\s*getSqlDadosMovimentacao\(.*\)\s*{)]]></search>
+      <add>
         <![CDATA[
+         $1
+         
+         /* Inicio GeracaoArquivoOBN */
          $oDaoPluginGeracaoArquivoOBN = db_utils::getDao("PluginGeracaoArquivoOBN");
          return $oDaoPluginGeracaoArquivoOBN->getSqlDadosMovimentacao($sCodigoGeracao, $iInstituicao, $iAno, $iCodigoMovimento);
          
@@ -784,57 +972,47 @@ exit;
           * Para ver o sql ou mesmo aterar, deve ser visto o arquivo classes/db_PluginGeracaoArquivoOBN_classe.php
           *
           */
+          /* Fim GeracaoArquivoOBN */
         ]]>
       </add>
     </operation>
-  </file>
-
+  </file>  
+  
   <file path='model/caixa/GeradorArquivoOBN.model.php'>
   
     <operation>
-      <search><![CDATA[require_once ("model/caixa/ConfiguracaoArquivoObn.model.php");]]></search>
-      <add position="replace">
-        <![CDATA[require_once (modification("model/caixa/ConfiguracaoArquivoObn.model.php"));]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte2] */
-      $oLinha          = $this->constroiLinhaTipoDois($oDadosMovimento);
-      $oLayoutTXT->setByLineOfDBUtils($oLinha, 3, 2);]]></search>
-      <add position="replace">
-        <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte2] */
-      //$oLinha          = $this->constroiLinhaTipoDois($oDadosMovimento);
-      //$oLayoutTXT->setByLineOfDBUtils($oLinha, 3, 2);]]>
+      <search regex="true"><![CDATA[(\$oLinha\s*=\s*\$this->constroiLinhaTipoDois\s*\(\s*\$oDadosMovimento\s*\)\s*;\n*\s*\$oLayoutTXT->setByLineOfDBUtils\s*\(\s*\$oLinha\s*,\s*3\s*,\s*2\s*\)\s*;)]]></search>
+      <add>
+        <![CDATA[]]>
       </add>
     </operation>  
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte3] */
-      $iTipoLinha = ConfiguracaoArquivoObn::verificaTipoLinha($oDadosMovimento->getCodigoBarra());]]></search>
-      <add position="replace">
-        <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte3] */
+      <search regex="true"><![CDATA[(\$iTipoLinha\s*=\s*ConfiguracaoArquivoObn::verificaTipoLinha\s*\(\s*\$oDadosMovimento->getCodigoBarra\(\)\s*\)\s*;)]]></search>
+      <add>
+        <![CDATA[/* Inicio GeracaoArquivoOBN */
       $iTipoLinha      = ConfiguracaoArquivoObn::verificaTipoLinha_2($oDadosMovimento->getCodigoBarra(), 
-                                                                      $oDadosMovimento->getCodReceita(),
-                                                                      $oDadosMovimento->getCodigoSlip(), 
-                                                                      $oDadosMovimento->getCodigoBancoFavorecido(), 
-                                                                      $oDadosMovimento->getSlipVinculo());]]>
+                                                                     $oDadosMovimento->getCodReceita(),
+                                                                     $oDadosMovimento->getCodigoSlip(), 
+                                                                     $oDadosMovimento->getCodigoBancoFavorecido(), 
+                                                                     $oDadosMovimento->getSlipVinculo());
+/* Fim GeracaoArquivoOBN */]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte4] */]]></search>
-      <add position="after">
-        <![CDATA[
+      <search regex="true" flag="U"><![CDATA[((case\s*ConfiguracaoArquivoObn::LAYOUT4:)(((.*\n?)*)(\$oLayoutTXT->setByLineOfDBUtils\(\s*\$oLinha\s*,\s*3\s*,\s*4\s*\);(.*\n?)*))break;)]]></search>
+      <add>
+        <![CDATA[/* Inicio GeracaoArquivoOBN */
         case ConfiguracaoArquivoObn::LAYOUT2:
           $oLinha          = $this->constroiLinhaTipoDois($oDadosMovimento);
           $oLayoutTXT->setByLineOfDBUtils($oLinha, 3, 2);
         break;
         case ConfiguracaoArquivoObn::LAYOUT3:
           /*
-            O tipo 3 Ã© utilizado em Natal para os Slips. O banco configurou este tipo 3 e tipo de operaÃ§Ã£o 17 em Natal para float 0,
-            ou seja, uma transferÃªncia para o entre secretÃ¡rias Ã© realizada no mesmo dia.
-            E o tipo de operaÃ§Ã£o nela contida Ã© 17, caso a conta crÃ©dito seja a conta Ãºnica (7000-9) e 37 para as demais contas.
+            O tipo 3 é utilizado em Natal para os Slips. O banco configurou este tipo 3 e tipo de operação 17 em Natal para float 0,
+            ou seja, uma transferência para o entre secretárias é realizada no mesmo dia.
+            E o tipo de operação nela contida é 17, caso a conta crédito seja a conta única (7000-9) e 37 para as demais contas.
           */
           
           $oLinha          = $this->constroiLinhaTipoDois($oDadosMovimento);
@@ -847,83 +1025,127 @@ exit;
           $oLinha          = $this->constroiLinhaTipoTresNovo($oDadosMovimento);
           $oLayoutTXT->setByLineOfDBUtils($oLinha, 3, 3);
         break;
-        ]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte5] */]]></search>
-      <add position="after">
-        <![CDATA[
+        case ConfiguracaoArquivoObn::LAYOUT4:
+
           $oLinha          = $this->constroiLinhaTipoDois($oDadosMovimento);
           $oLayoutTXT->setByLineOfDBUtils($oLinha, 3, 2);
-        ]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte6] */]]></search>
-      <add position="after">
-        <![CDATA[
+        
+          $oDaoDetalheTransmissao = db_utils::getDao('empagemovdetalhetransmissao');
+          $sSqlDetalheTransmissao = $oDaoDetalheTransmissao->sql_query_file (null, "*", null, "e74_empagemov = {$oDadosMovimento->getCodigoMovimento()}");
+          $rsDetalheTransmissao   = $oDaoDetalheTransmissao->sql_record($sSqlDetalheTransmissao);
+          $iDetalheFatura      = 1;
+          
+          if ($oDaoDetalheTransmissao->numrows > 0) {
+          
+            for ($iDetalheTransmissao=0; $iDetalheTransmissao < $oDaoDetalheTransmissao->numrows; $iDetalheTransmissao++) { 
+              
+              $oDadosDetalheTransmissao = db_utils::fieldsMemory($rsDetalheTransmissao, $iDetalheTransmissao);
+              
+              $this->iSequencialRegistro++;
+              $oLinha = $this->constroiLinhaTipoQuatro($oDadosMovimento, $oDadosDetalheTransmissao, $iDetalheFatura);
+              $iDetalheFatura++;
+              $oLayoutTXT->setByLineOfDBUtils($oLinha, 3, 4);
+              
+              $this->iContadorRegistros++;
+              $aCodigoSequenciais[] = $this->iContadorRegistros;
+            }
+          }
+          break;
+      case ConfiguracaoArquivoObn::LAYOUT5:
+
+          $oLinha          = $this->constroiLinhaTipoDois($oDadosMovimento);
+          $oLayoutTXT->setByLineOfDBUtils($oLinha, 3, 2);
+        
+          $oDaoEmpAgeMovPagamento = db_utils::getDao('empagemovpagamento');
+          $sSqlEmpAgeMovPagamento = $oDaoEmpAgeMovPagamento->sql_query_empagemov("*", "", "empagemov = {$oDadosMovimento->getCodigoMovimento()}");
+          $rsEmpAgeMovPagamento   = $oDaoEmpAgeMovPagamento->sql_record($sSqlEmpAgeMovPagamento);
+          $iDetalhePagamento      = 1;
+
+          if ($oDaoEmpAgeMovPagamento->numrows > 0) {
+
+            for ($iPagamento = 0; $iPagamento < $oDaoEmpAgeMovPagamento->numrows; $iPagamento++) { 
+              
+              $oDadosPagamento = db_utils::fieldsMemory($rsEmpAgeMovPagamento, $iPagamento);
+
+              $this->iSequencialRegistro++;
+              $oLinha = $this->constroiLinhaTipoCinco($oDadosMovimento, $oDadosPagamento, $iDetalhePagamento);
+              $iDetalhePagamento++;
+              $oLayoutTXT->setByLineOfDBUtils($oLinha, 3, 5);
+
+              $this->iContadorRegistros++;
+              $aCodigoSequenciais[] = $this->iContadorRegistros;              
+            }
+
+          }
+          
+      break;
         default:
-          throw new BusinessException("Linha $iTipo nÃ£o foi configurada para tipo OBN.");
+          throw new BusinessException("Linha $iTipo não foi configurada para tipo OBN.");
+        
+      /* Fim GeracaoArquivoOBN */
+        
         ]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte7] */
-      $sCPFCNPJ = str_pad($sCPFCNPJ, 14, "0", STR_PAD_RIGHT);]]></search>
-      <add position="replace">
-        <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte7] */
-      $sCPFCNPJ = str_pad($sCPFCNPJ, 14, " ", STR_PAD_RIGHT);]]>
+      <search regex="true"><![CDATA[\$oStdLinhaTipoQuatro->tipo_fatura\s*=\s*\$oDadosLinha->getTipoFatura\(\s*\);\s*\n*\s*\$oStdLinhaTipoQuatro->codigo_barra\s*=\s*\$oDadosLinha->getCodigoBarra\(\s*\)\s*;]]></search>
+      <add>
+        <![CDATA[/* Inicio GeracaoArquivoOBN */
+    $oStdLinhaTipoQuatro->tipo_fatura                      = $oDadosDetalheTransmissao->e74_tipofatura;
+    $oStdLinhaTipoQuatro->codigo_barra                     = $oDadosDetalheTransmissao->e74_codigodebarra;
+    /* Fim GeracaoArquivoOBN */
+    ]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte8] */
-    $oStdLinhaTipoDois->codigo_retorno = str_repeat(" ", 2);]]></search>
-      <add position="replace">
-        <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte8] */
-    $oStdLinhaTipoDois->codigo_retorno                = str_repeat("0", 2);]]>
+      <search regex="true"><![CDATA[(\$sCodigoAgenciaFavorecido\s*=\s*\$oDadosLinha->getCodigoAgenciaFavorecida\(\);)]]></search>
+      <add>
+        <![CDATA[$sCodigoAgenciaFavorecido = str_pad(substr($oDadosLinha->getCodigoAgenciaFavorecida(), -4), 4, "0", STR_PAD_LEFT);]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte9] */
-    $oStdLinhaTipoDois->finalidade_pagamento = str_pad($sCodigoFinalidadePagamento, 3, "0", STR_PAD_LEFT);
-    $oStdLinhaTipoDois->prefixo_conta_convenio = str_pad($sContaDigitoPagadora, 10, "0", STR_PAD_LEFT);]]></search>
-      <add position="replace">
-        <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte9] */
-    $oStdLinhaTipoDois->finalidade_pagamento        = str_repeat(" ", 3);
+      <search regex="true"><![CDATA[\$oStdLinhaTipoDois->codigo_retorno\s*=\s*str_repeat\(('|")\s*('|")\s*,\s*2\s*\)\s*;]]></search>
+      <add>
+        <![CDATA[$oStdLinhaTipoDois->codigo_retorno = str_repeat("0", 2);]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[\$oStdLinhaTipoDois->finalidade_pagamento\s*=.*STR_PAD_LEFT\)\s*;\n*\s*\$oStdLinhaTipoDois->prefixo_conta_convenio.*\);]]></search>
+      <add>
+        <![CDATA[$oStdLinhaTipoDois->finalidade_pagamento        = str_repeat(" ", 3);
     $oStdLinhaTipoDois->prefixo_conta_convenio        = str_pad($sContaDigitoPagadora, 10, " ", STR_PAD_RIGHT);]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte10] */
-    $oStdLinhaTipoDois->campo_um = "1";]]></search>
-      <add position="replace">
-        <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte10] */
-    $oStdLinhaTipoDois->campo_um = "0";]]>
+      <search regex="true"><![CDATA[\$oStdLinhaTipoDois->campo_um\s*=\s*('|")1('|")\s*;]]></search>
+      <add>
+        <![CDATA[$oStdLinhaTipoDois->campo_um = "0";]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte11] */
-    $oStdLinhaTipoDois->codigo_movimentacao = str_pad($oDadosLinha->getCodigoMovimento(), 11, "0", STR_PAD_LEFT);]]></search>
-      <add position="replace">
-        <![CDATA[    /* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte11] */
-    $oStdLinhaTipoDois->codigo_movimentacao = str_pad(number_format($oDadosLinha->getCodigoArquivoSistema(),0,',','.')."/".db_getsession("DB_anousu"), 11, "0", STR_PAD_LEFT);]]>
+      <search regex="true" flag="U"><![CDATA[(function\s*constroiLinhaTipoDois\s*\(((\n*.*)*))\$sCPFCNPJ\s*=\s*str_pad\(\$sCPFCNPJ.*\);]]></search>
+      <add>
+        <![CDATA[$1$sCPFCNPJ = str_pad($sCPFCNPJ, 14, " ", STR_PAD_RIGHT);]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte12] */
-    $oStdLinhaTipoDois->codigo_instituicao = ConfiguracaoArquivoObn::CODIGO_PADRAO_INSTITUICAO;]]></search>
-      <add position="replace">
-        <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte12] */
-    $sUgGestao      =  str_pad(str_pad($oDadosLinha->getOrgao(),2,"0",STR_PAD_LEFT).str_pad($oDadosLinha->getUnidade(),2,"0",STR_PAD_LEFT),"6","0",STR_PAD_LEFT).str_pad("1",5,"0",STR_PAD_LEFT);
+      <search regex="true"><![CDATA[(\$oStdLinhaTipoDois->codigo_movimentacao\s*=.*;)]]></search>
+      <add>
+        <![CDATA[$oStdLinhaTipoDois->codigo_movimentacao = str_pad(number_format($oDadosLinha->getCodigoArquivoSistema(),0,',','.')."/".db_getsession("DB_anousu"), 11, "0", STR_PAD_LEFT);]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[\$oStdLinhaTipoDois->codigo_instituicao\s*=.*;]]></search>
+      <add>
+        <![CDATA[$sUgGestao      =  str_pad(str_pad($oDadosLinha->getOrgao(),2,"0",STR_PAD_LEFT).str_pad($oDadosLinha->getUnidade(),2,"0",STR_PAD_LEFT),"6","0",STR_PAD_LEFT).str_pad("1",5,"0",STR_PAD_LEFT);
     if ($oDadosLinha->getContaPagadora() == "7000") {
     $sUgGestao          =  "0".str_pad($oDadosLinha->getOrgao(),2,"0",STR_PAD_LEFT)."000".str_pad("1",5,"0",STR_PAD_LEFT);
     }
@@ -931,12 +1153,12 @@ exit;
       </add>
     </operation>
     
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte13] */]]></search>
-      <add position="after">
+        <operation>
+      <search regex="true"><![CDATA[(private\s*function\s*constroiLinhaTipoTres\(.*\)\s*{)]]></search>
+      <add>
         <![CDATA[
   /**
-   * ConstrÃ³i os dados que serÃ£o impressos na linha do tipo 3 (novo)
+   * Constrói os dados que serão impressos na linha do tipo 3 (novo)
    * @param MovimentoArquivoTransmissao $oDadosLinha
    * @return stdClass
    */
@@ -1021,17 +1243,145 @@ exit;
     $oStdLinhaTipoTres->codigo_retorno_operacao     = str_repeat("0", 2);
     $oStdLinhaTipoTres->identificador_linha     = 3;
     return $oStdLinhaTipoTres;
-  }  ]]>
+  }  
+  
+  private function constroiLinhaTipoCinco(MovimentoArquivoTransmissao $oDadosLinha, $oDadosPagamento, $iDetalhePagamento) {
+
+    $oStdLinhaTipoCinco       = new stdClass();
+    $iTipoFavorecido          = ConfiguracaoArquivoObn::verificaTipoFavorecido(strlen($oDadosLinha->getCnpj()));
+    $iTipoOperacao            = ConfiguracaoArquivoObn::verificarTipoOperacao($oDadosLinha);
+    list($iAno, $iMes, $iDia) = explode("-", $this->dtGeracaoArquivo);
+    list($iAnoPagamento, $iMesPagamento, $iDiaPagamento) = explode("-", $oDadosLinha->getDataVencimento());
+
+
+    $sCPFCNPJ = $oDadosLinha->getCnpj();
+    if ($iTipoFavorecido == ConfiguracaoArquivoObn::TIPO_CPF) {
+      $sCPFCNPJ = str_pad($sCPFCNPJ, 14, "0", STR_PAD_RIGHT);
+    }
+    $oStdLinhaTipoCinco->identificador_linha              = 5;
+    $sAgenciaInstituicao = $oDadosLinha->getCodigoAgenciaPagadora().$oDadosLinha->getDigitoVerificadorAgenciaPagadora();
+    $oStdLinhaTipoCinco->codigo_agencia_banco_instituicao = $sAgenciaInstituicao;
+
+    $sUgGestao          =  str_pad(str_pad($oDadosLinha->getOrgao(),2,"0",STR_PAD_LEFT).str_pad($oDadosLinha->getUnidade(),2,"0",STR_PAD_LEFT),"6","0",STR_PAD_LEFT).str_pad("1",5,"0",STR_PAD_LEFT);
+    if ($oDadosLinha->getContaPagadora() == "7000") {
+        $sUgGestao          =  "0".str_pad($oDadosLinha->getOrgao(),2,"0",STR_PAD_LEFT)."000".str_pad("1",5,"0",STR_PAD_LEFT);
+    }
+    $oStdLinhaTipoCinco->codigo_instituicao               = $sUgGestao;
+    $oStdLinhaTipoCinco->codigo_movimento                 = str_pad(number_format($oDadosLinha->getCodigoArquivoSistema(),0,',','.')."/".db_getsession("DB_anousu"), 11, "0", STR_PAD_LEFT);
+    
+    $oStdLinhaTipoCinco->codigo_ob                        = str_pad($oDadosLinha->getCodigoMovimento(), 11, "0", STR_PAD_LEFT);
+    $oStdLinhaTipoCinco->data_geracao_arquivo             = "{$iDia}{$iMes}{$iAno}";
+    $oStdLinhaTipoCinco->campo_branco_um                  = str_repeat(" ", 4);
+    $oStdLinhaTipoCinco->codigo_operacao                  = $iTipoOperacao;
+    $oStdLinhaTipoCinco->campo_branco_dois                = str_repeat(" ", 1);
+
+    $oStdLinhaTipoCinco->campo_zero_um                    = str_pad($iDetalhePagamento, 6, "0", STR_PAD_LEFT);
+    
+    $oStdLinhaTipoCinco->campo_branco_tres                = str_repeat(" ", 3);
+    $oStdLinhaTipoCinco->valor_liquido                    = str_pad(str_replace(".", "", $oDadosLinha->getValor()), 17, "0", STR_PAD_LEFT);
+    $oStdLinhaTipoCinco->data_pagamento                   = "{$iDiaPagamento}{$iMesPagamento}{$iAnoPagamento}";
+    $oStdLinhaTipoCinco->campo_branco_quatro              = str_repeat(" ", 7);
+    
+    $oStdLinhaTipoCinco->tipo_pagamento                   = $oDadosPagamento->tipopagamento;
+    
+    $oStdLinhaTipoCinco->cod_rec_tributo       = str_pad($oDadosPagamento->codreceita, 6, " ", STR_PAD_LEFT);
+    $oStdLinhaTipoCinco->cod_ident_tributo     = str_pad($oDadosPagamento->codidentificacao, 2, " ", STR_PAD_LEFT);
+    ////DETALHAMENTO////
+
+    switch ($oDadosPagamento->tipopagamento) {
+      
+      //GPS
+      case '1':
+
+        //competencia
+        $oStdLinhaTipoCinco->detalhe_linha5  = str_pad(str_replace("/", "", $oDadosPagamento->mesanocompetencia), 6, "0", STR_PAD_LEFT);
+        //valor_INSS
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_pad(str_replace(".", "", $oDadosPagamento->valorinss), 17, "0", STR_PAD_LEFT);
+        //valor_outras
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_pad(str_replace(".", "", $oDadosPagamento->valoroutras), 17, "0", STR_PAD_LEFT);
+        //atualizacao_monetaria
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_pad(str_replace(".", "", $oDadosPagamento->atualizacaomonetaria), 17, "0", STR_PAD_LEFT);
+        //campo_branco_GPS
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_repeat(" ", 27);
+      break;
+      
+      //DARF
+      case '2':
+
+        //periodo_apuracao
+        $oStdLinhaTipoCinco->detalhe_linha5  = str_pad(str_replace("-", "", $oDadosPagamento->periodoapuracao), 8, "0", STR_PAD_LEFT);
+        //num_referencia
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_pad(str_replace(".", "", $oDadosPagamento->numreferencia), 17, "0", STR_PAD_LEFT);
+        //valor_principal
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_pad(str_replace(".", "", $oDadosPagamento->valorprincipal), 17, "0", STR_PAD_LEFT);
+        //valor_multa
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_pad(str_replace(".", "", $oDadosPagamento->valormulta), 17, "0", STR_PAD_LEFT);
+        //juros_encargos
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_pad(str_replace(".", "", $oDadosPagamento->jurosencargos), 17, "0", STR_PAD_LEFT);
+        //data_vencimento
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_pad(str_replace("-", "", $oDadosPagamento->datavencimento), 8, "0", STR_PAD_LEFT);
+      break;
+
+      //DARF simples
+      case '3':
+
+        //periodo_apuracao
+        $oStdLinhaTipoCinco->detalhe_linha5  = str_pad(str_replace("-", "", $oDadosPagamento->periodoapuracao), 8, "0", STR_PAD_LEFT);
+        //valor_receita_bruta
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_pad(str_replace(".", "", $oDadosPagamento->valorreceitabruta), 17, "0", STR_PAD_LEFT);
+        //percentual_receita
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_pad(str_replace(".", "", $oDadosPagamento->percentualreceita), 7, "0", STR_PAD_LEFT);
+        //valor_principal
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_pad(str_replace(".", "", $oDadosPagamento->valorprincipal), 17, "0", STR_PAD_LEFT);
+        //valor_multa
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_pad(str_replace(".", "", $oDadosPagamento->valormulta), 17, "0", STR_PAD_LEFT);
+        //juros_encargos
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_pad(str_replace(".", "", $oDadosPagamento->jurosencargos), 17, "0", STR_PAD_LEFT);
+        //campo_branco_DARF_simples
+        $oStdLinhaTipoCinco->detalhe_linha5 .= str_repeat(" ", 1);
+      break;
+
+      default:
+        $oStdLinhaTipoCinco->detalhe_linha5  = "Erro ao gerar detalhamento da linha tipo 5. Verifique o vínculo com o empagemov.";
+      break;
+    }
+
+    ////FIM DETALHAMENTO////
+
+    $oStdLinhaTipoTres->tipo_favorecido      = $iTipoFavorecido;
+    $oStdLinhaTipoTres->codigo_favorecido    = $sCPFCNPJ;
+    $oStdLinhaTipoTres->nome_favorecido      = $oDadosLinha->getNome();
+    $oStdLinhaTipoCinco->campo_branco_cinco  = str_repeat(" ", 29);
+    $oStdLinhaTipoCinco->observacao_ob       = str_repeat(" ", 40);
+    $oStdLinhaTipoCinco->numero_autenticacao = str_repeat(" ", 16);
+
+    $sConvenioAgencia  = $oDadosLinha->getCodigoAgenciaPagadora().$oDadosLinha->getDigitoVerificadorAgenciaPagadora();
+    $oStdLinhaTipoCinco->convenio_agencia_dv              = $sConvenioAgencia;
+
+    $sConvenioConta    = $oDadosLinha->getContaPagadora().$oDadosLinha->getDigitoVerificadorContaPagadora();
+    $oStdLinhaTipoCinco->convenio_conta_dv                = str_pad($sConvenioConta, 10, " ", STR_PAD_RIGHT);
+    
+    $oStdLinhaTipoCinco->campo_branco_seis                = str_repeat(" ", 7);
+    $oStdLinhaTipoCinco->retorno_operacao                 = str_repeat("0", 2);
+    $oStdLinhaTipoCinco->numero_sequencial_movimento      = str_pad($this->iSequencialRegistro, 7, "0", STR_PAD_LEFT);
+    return $oStdLinhaTipoCinco;
+  }  
+  
+  $1]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte14] */
-    $oStdLinhaTipoQuatro->codigo_instituicao = ConfiguracaoArquivoObn::CODIGO_PADRAO_INSTITUICAO;
-    $oStdLinhaTipoQuatro->codigo_movimento = str_pad($oDadosLinha->getCodigoMovimento(), 11, "0", STR_PAD_LEFT);]]></search>
-      <add position="replace">
-        <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte14] */
-    $sUgGestao          =  str_pad(str_pad($oDadosLinha->getOrgao(),2,"0",STR_PAD_LEFT).str_pad($oDadosLinha->getUnidade(),2,"0",STR_PAD_LEFT),"6","0",STR_PAD_LEFT).str_pad("1",5,"0",STR_PAD_LEFT);
+      <search regex="true"><![CDATA[(function\s*constroiLinhaTipoQuatro\s*\(\s*MovimentoArquivoTransmissao\s*\$oDadosLinha)]]></search>
+      <add>
+        <![CDATA[$1, $oDadosDetalheTransmissao, $iDetalheFatura]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(\$oStdLinhaTipoQuatro->codigo_instituicao\s*=.*;\n*\s*\$oStdLinhaTipoQuatro->codigo_movimento\s*=.*;)]]></search>
+      <add>
+        <![CDATA[$sUgGestao          =  str_pad(str_pad($oDadosLinha->getOrgao(),2,"0",STR_PAD_LEFT).str_pad($oDadosLinha->getUnidade(),2,"0",STR_PAD_LEFT),"6","0",STR_PAD_LEFT).str_pad("1",5,"0",STR_PAD_LEFT);
     if ($oDadosLinha->getContaPagadora() == "7000") {
         $sUgGestao          =  "0".str_pad($oDadosLinha->getOrgao(),2,"0",STR_PAD_LEFT)."000".str_pad("1",5,"0",STR_PAD_LEFT);
     }
@@ -1041,40 +1391,81 @@ exit;
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte15] */
-    $oStdLinhaTipoQuatro->campo_zero_um = str_repeat("0", 6);]]></search>
-      <add position="replace">
-        <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte15] */
-    $oStdLinhaTipoQuatro->campo_zero_um                    = "000001";]]>
+      <search regex="true"><![CDATA[\$oStdLinhaTipoQuatro->campo_zero_um\s*=\s*str_repeat\(\s*"0"\s*,\s*6\);]]></search>
+      <add>
+        <![CDATA[$oStdLinhaTipoQuatro->campo_zero_um = str_pad($iDetalheFatura, 6, "0", STR_PAD_LEFT);]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte18] */
-    $oStdLinhaTipoQuatro->convenio_conta_dv                = str_pad($sConvenioConta, 10, "0", STR_PAD_LEFT);]]></search>
-      <add position="replace">
-        <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte18] */
-    $oStdLinhaTipoQuatro->convenio_conta_dv                = str_pad($sConvenioConta, 10, " ", STR_PAD_RIGHT);]]>
+      <search regex="true"><![CDATA[\$oStdLinhaTipoQuatro->valor_liquido\s*=.*oDadosLinha->getValor\(\).*\);]]></search>
+      <add>
+        <![CDATA[$oStdLinhaTipoQuatro->valor_liquido                    = str_pad(str_replace(".", "", $oDadosDetalheTransmissao->e74_valornominal), 17, "0", STR_PAD_LEFT);]]>
       </add>
-    </operation>    
+    </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte19] */
-    $oStdLinhaTipoQuatro->retorno_operacao                 = str_repeat(" ", 2);]]></search>
-      <add position="replace">
-        <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte19] */
-    $oStdLinhaTipoQuatro->retorno_operacao                 = str_repeat("0", 2);]]>
+      <search regex="true"><![CDATA[(list\(\$iAnoCodigoBarra, \$iMesCodigoBarra, \$iDiaCodigoBarra\) = explode\("-",\s*)(\$oDadosLinha->getDataVencimento\(\))]]></search>
+      <add>
+        <![CDATA[$1 $oDadosDetalheTransmissao->e74_datavencimento]]>
       </add>
-    </operation>  
+    </operation>
+
+    <operation>
+      <search regex="true" flag="U" limit="1"><![CDATA[(\$oStdLinhaTipoQuatro->cb_valor_nominal\s*=.*)((.*\n*)*)cb_valor_mora_juros((.*\n*)*)STR_PAD_LEFT\);]]></search>
+      <add>
+        <![CDATA[$oStdLinhaTipoQuatro->cb_valor_nominal                 = str_pad(str_replace(".", "", $oDadosDetalheTransmissao->e74_valornominal), 17, "0", STR_PAD_LEFT);
+    $oStdLinhaTipoQuatro->cb_valor_desconto_abatimento     = str_pad(str_replace(".", "",  $oDadosDetalheTransmissao->e74_valordesconto), 17, "0", STR_PAD_LEFT);
+    $oStdLinhaTipoQuatro->cb_valor_mora_juros              = str_pad(str_replace(".", "", $oDadosDetalheTransmissao->e74_valorjuros), 17, "0", STR_PAD_LEFT);]]>
+      </add>
+    </operation> 
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte20] */]]></search>
-      <add position="after">
-        <![CDATA[
-  public function salvarGeracaoTxtArquivo() {
+      <search regex="true"><![CDATA[(\(\s*\$oDadosLinha->getTipoFatura\(\)\s*==\s*2\s*\))]]></search>
+      <add>
+        <![CDATA[($oDadosDetalheTransmissao->e74_tipofatura == 2)]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(\$oStdLinhaTipoQuatro->campo_branco_cinco.*;)]]></search>
+      <add>
+        <![CDATA[$sCPFCNPJ = $oDadosLinha->getCnpj();
+    if ($iTipoFavorecido == ConfiguracaoArquivoObn::TIPO_CPF) {
+      $sCPFCNPJ = str_pad($sCPFCNPJ, 14, " ", STR_PAD_RIGHT);
+    }
+    $oStdLinhaTipoQuatro->campo_branco_cinco               = "{$iTipoFavorecido}"."{$sCPFCNPJ}".str_repeat(" ", 149);]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[\$oStdLinhaTipoQuatro->convenio_conta_dv\s*=.*;]]></search>
+      <add>
+        <![CDATA[$oStdLinhaTipoQuatro->convenio_conta_dv = str_pad($sConvenioConta, 10, " ", STR_PAD_RIGHT);]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[\$oStdLinhaTipoQuatro->retorno_operacao\s*=.*;]]></search>
+      <add>
+        <![CDATA[$oStdLinhaTipoQuatro->retorno_operacao = str_repeat("0", 2);]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[\$oStdLinhaTrailer->somatorio_valores\s*=\s*str_pad\(.*\$this->nValorTotalDasMovimentacoes.*\).*STR_PAD_LEFT\s*\);]]></search>
+      <add>
+        <![CDATA[$oStdLinhaTrailer->somatorio_valores             = str_pad(str_replace(",", "", str_replace(".", "", number_format((float)$this->nValorTotalDasMovimentacoes, 2))), 17, "0", STR_PAD_LEFT);]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(private\s*function\s*vincularMovimentosNaGeracao\s*\(\s*\$aMovimentosAgenda\s*\)\s*{)]]></search>
+      <add>
+        <![CDATA[public function salvarGeracaoTxtArquivo() {
   
     if (empty($this->iCodigoRemessa)) {
-        throw new BusinessException("ERRO [ 3 ] - Salvando geracao txt do arquivo - NÃ£o foi encontrado cÃ³digo da remessa.");
+        throw new BusinessException("ERRO [ 3 ] - Salvando geracao txt do arquivo - Não foi encontrado cÃ³digo da remessa.");
     }
     
     $oArquivoGerado           = db_utils::getDao("arquivoobngerado");
@@ -1087,39 +1478,60 @@ exit;
       $oArquivoGerado->datagera = date('d/m/Y');
       $oArquivoGerado->incluir(null);
       if ($oArquivoGerado->erro_status == 0) {
-        throw new BusinessException("NÃ£o foi possÃ­vel gravar geraÃ§Ã£o do arquivo.");
+        throw new BusinessException("Não foi possí­vel gravar geração do arquivo.");
       }
     }
   
     return true;
-  }]]>
+  }
+  
+  $1]]>
       </add>
-    </operation>
-      
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte21] */
-    $sCodigoAgenciaFavorecido            = $oDadosLinha->getCodigoAgenciaFavorecida();]]></search>
-      <add position="replace">
-        <![CDATA[
-    /* [Inicio plugin GeracaoArquivoOBN  - Geracao Arquivo OBN - parte21] */
-    $sCodigoAgenciaFavorecido            = str_pad(substr($oDadosLinha->getCodigoAgenciaFavorecida(), -4), 4, "0", STR_PAD_LEFT);]]>
-      </add>
-    </operation>
+    </operation>    
     
-    <operaction>
-      <search><![CDATA[$oStdLinhaTrailer->somatorio_valores             = str_pad(str_replace(".", "", $this->nValorTotalDasMovimentacoes), 17, "0", STR_PAD_LEFT);]]></search>
-      <add position="replace">
-        <![CDATA[$oStdLinhaTrailer->somatorio_valores             = str_pad(str_replace(".", "", number_format($this->nValorTotalDasMovimentacoes, 2, ".", "")), 17, "0", STR_PAD_LEFT);]]>
+    <operation>
+      <search regex="true" flag="U"><![CDATA[((if\s*\(!empty\(\$this->dtGeracaoArquivo\)\)\s*\{((\n*.*)*)\$dtDataProcessamento\)\);\n*.*\}))]]></search>
+      <add>
+        <![CDATA[    
+    $dtDataGeracao = date('d/m/Y', strtotime($this->dtGeracaoArquivo));
+    $this->oArquivoTransmissao->setDataAutorizacaoPagamento(new DBDate($dtDataGeracao));
+    
+    $dtDataProcessamento = date('d/m/Y', strtotime($this->dtAutorizacaoPagamento));
+    $this->oArquivoTransmissao->setDataGeracaoArquivo(new DBDate($dtDataProcessamento));
+]]>
       </add>
-    </operaction>
-  </file>  
+    </operation>      
+
+    <operation>
+      <search regex="true"><![CDATA[(\$oDadosMovimento.*montaObjetoLinha.*;)]]></search>
+      <add>
+        <![CDATA[$sMsgErro = empty($oStdMovimento->ordem) ? "no slip {$oStdMovimento->slip}" : "na ordem {$oStdMovimento->ordem}";
+
+      if(empty($oStdMovimento->convenio) || $oStdMovimento->convenio == 0) {
+        throw new BusinessException("A conta {$oStdMovimento->saltes_pag} configurada {$sMsgErro} não possui convênio. Verifique.");
+      }
+
+      $oDaoSaltesDepart = db_utils::getDao("saltesdepart");
+      $rsSaltesDepart   = $oDaoSaltesDepart->sql_record($oDaoSaltesDepart->sql_query(null, "count(*) as vinculoDepart", null, "depart = ".db_getsession('DB_coddepto')." and saltes = {$oStdMovimento->saltes_pag}"));
+      $iSaltesDepart    = db_utils::fieldsMemory($rsSaltesDepart, 0)->vinculodepart;
+
+      if($iSaltesDepart == 0 && $oStdMovimento->regerar == 'nao') {
+        throw new BusinessException("A conta {$oStdMovimento->saltes_pag} configurada {$sMsgErro} não está vinculada ao departamento logado. Verifique.");
+      }
+      $1]]>
+      </add>
+    </operation>
+  </file>
   
   <file path='emp4_empageconfgera001_ordem.php'>
   
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte1] */]]></search>
-      <add position="after">
+      <search regex="true"><![CDATA[(\$sWhereOrdem\s*=)]]></search>
+      <add>
         <![CDATA[
+        /* Inicio GeracaoArquivoOBN */
+        $dbwhere .= "  and not exists(select 1 from empagedadosretmov where e76_codmov = e90_codmov and e76_processado = 't')";
+        
         $dbWhereEmpenho = "";
         $dbWhereSlip = "";
         $oSlipDepartamento = db_utils::getDao("slipdepartamento");
@@ -1132,9 +1544,6 @@ exit;
           if(!empty($iOrgao) && !empty($iUnidade)) {
             $dbWhereEmpenho  = "and orcdotacao.o58_orgao = {$iOrgao} ";
             $dbWhereEmpenho .= "and orcdotacao.o58_unidade = {$iUnidade}";
-            /*$dbWhereEmpenho .= "and exists(select 1 from plugins.solicitacaorepasseempnota
-                                                          inner join pagordemnota on e71_codnota = empnota
-                                                        where e71_codord = e50_codord and estornado = 'f')";*/
             
             $dbWhereSlip  = "and db_departorg.db01_orgao = {$iOrgao} ";
             $dbWhereSlip .= "and db_departorg.db01_unidade = {$iUnidade}";
@@ -1150,52 +1559,82 @@ exit;
             
         }
         $aUnidades = array();
+        /* Fim GeracaoArquivoOBN */
+$1]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(\$sSqlTxt\s*=.*;)]]></search>
+      <add>
+        <![CDATA[
+        /* Inicio GeracaoArquivoOBN */
+        $oPluginGeracaoArquivoOBN = db_utils::getDao("PluginGeracaoArquivoOBN");
+        $sWhereEmpenho = "{$dbwhere} {$dbWhereEmpenho} and {$sWhereOrdem}"; 
+        $sWhereSlip = "{$dbwhere} {$dbWhereSlip}";
+        $sSqlTxt = $oPluginGeracaoArquivoOBN->sql_buscaMovimentosGeracaoArquivoOBN($sWhereEmpenho, $sWhereSlip);
+        /* Fim GeracaoArquivoOBN */
         ]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte2] */]]></search>
-      <add position="after">
-        <![CDATA[
-        $oPluginGeracaoArquivoOBN = db_utils::getDao("PluginGeracaoArquivoOBN");
-        $sWhereEmpenho = "{$dbwhere} {$dbWhereEmpenho} and {$sWhereOrdem}"; 
-        $sWhereSlip = "{$dbwhere} {$dbWhereSlip}";
-        $sSqlTxt = $oPluginGeracaoArquivoOBN->sql_buscaMovimentosGeracaoArquivoOBN($sWhereEmpenho, $sWhereSlip);
+      <search regex="true"><![CDATA[(db_fieldsmemory\(\s*\$result09\s*,\s*\$i\s*\)\s*;)]]></search>
+      <add>
+        <![CDATA[$1
+            
+            /* Inicio GeracaoArquivoOBN */
+            /* verifica se a unidade não está contida na lista, e se sua movimentação é do tipo OBN */
+            if (!in_array($unidade, $aUnidades) && $e25_empagetipotransmissao == 2) {
+              $aUnidades[$orgao.":".$unidade] = str_replace("'","",$orgao.":".$unidade."|".urlencode($o41_descr));
+            }
+            asort($aUnidades);
+            /* Fim GeracaoArquivoOBN */
         ]]>
       </add>
     </operation>
-
+    
     <operation>
-      <search><![CDATA[$sChecked  = " checked ";]]></search>
-      <add position="replace">
+      <search regex="true" limit="1"><![CDATA[\$sChecked\s*=\s*"\s*checked\s*"\s*;]]></search>
+      <add>
         <![CDATA[$sChecked  = "  ";]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte3] */]]></search>
-      <add position="after">
-        <![CDATA[
-            /* verifica se a unidade nÃ£o estÃ¡ contida na lista, e se sua movimentaÃ§Ã£o Ã© do tipo OBN */
-            if (!in_array($unidade, $aUnidades) && $e25_empagetipotransmissao == 2) {
-              $aUnidades[$orgao.":".$unidade] = str_replace("'","",$orgao.":".$unidade."|".urlencode($o41_descr));
-            }
-            asort($aUnidades);
-        ]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[if ($comboboxCNPJ != $db83_identificador) {]]></search>
-      <add position="replace">
+      <search regex="true"><![CDATA[if\s*\(\s*\$comboboxCNPJ\s*!=\s*\$db83_identificador\s*\)\s*\{]]></search>
+      <add>
         <![CDATA[if ($comboboxCNPJ != $db83_identificador && $comboboxCNPJ != '') {]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[<!-- [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte5] -->]]></search>
-      <add position="after">
+      <search regex="true"><![CDATA[(\?>\n*\s*<!--\s*COLUNA\s*7\s*COD\s*PGTO\s*-->)]]></search>
+      <add>
+        <![CDATA[
+          /* Inicio GeracaoArquivoOBN */
+          $codigopagamento = "-";
+          if ($e60_codemp != 0) {
+            $codigopagamento = "Pagamento de Empenho";
+          } else {
+            if ($tiposlip == 1) {
+              $codigopagamento = "Transferência";
+            } else if ($tiposlip == 2) {
+              $codigopagamento = "Retenção";
+            } else if ($tiposlip == 3) {
+              $codigopagamento = "Transferência (Repasse)";
+            } else {
+              $codigopagamento = "-";
+            }
+          }
+          /* Fim GeracaoArquivoOBN */
+         $1]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(<\/form>\n*\s*<\/table>)]]></search>
+      <add>
         <![CDATA[
         <input type="hidden" size = "50" name='unidades' value='<?php echo json_encode($aUnidades)?>'>
         <?
@@ -1205,32 +1644,11 @@ exit;
             db_putsession("geracao_txt_unidades", json_encode($aUnidades)); 
           }
         ?>
-        ]]>
+        
+        $1]]>
       </add>
     </operation>
     
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte6] */]]></search>
-      <add position="after">
-        <![CDATA[
-          $codigopagamento = "-";
-          if ($e60_codemp != 0) {
-            $codigopagamento = "Pagamento de Empenho";
-          } else {
-            if ($tiposlip == 1) {
-              $codigopagamento = "TransferÃªncia";
-            } else if ($tiposlip == 2) {
-              $codigopagamento = "RetenÃ§Ã£o";
-            } else if ($tiposlip == 3) {
-              $codigopagamento = "TransferÃªncia (Repasse)";
-            } else {
-              $codigopagamento = "-";
-            }
-          }
-         ]]>
-      </add>
-    </operation>         
-
     <operation>
       <search regex="true"><![CDATA[(<td.*center.*Recurso.*)]]></search>
       <add>
@@ -1244,108 +1662,105 @@ exit;
       <search regex="true"><![CDATA[(\$o15_codigo.*\s*\n*<\/td>)]]></search>
       <add>
         <![CDATA[$1
-        
-
           <!-- COLUNA  6 TIPO DE PAG   -->
           <td class='linhagrid' style='text-align:left' title='Recurso' align='right'>
             <?
-
-            $sqlOrdem = "
-              select 
-                pc63_conta::varchar,
-                pc63_contabanco::varchar,
-                coalesce(pc63_conta_dig,'0') as pc63_conta_dig,
-                coalesce(pc63_banco,'000') as pc63_banco,
-                e60_codemp,
-                case when fatura = 't' then 2 else 1 end as comfatura,
-                e74_codigodebarra as codigobarras,
-                null::integer as slipvinculo
-              from empagemov
-                inner join empagemovtipotransmissao on e25_empagemov = e81_codmov
-                  left join plugins.empagemovtipotransmissaofatura on empagemovtipotransmissaofatura.empagemovtipotransmissao = e25_sequencial
-                inner join empage  on  empage.e80_codage = empagemov.e81_codage
-                inner join empempenho on e60_numemp = e81_numemp
-                inner join orcdotacao on e60_coddot = o58_coddot and e60_anousu = o58_anousu
-                inner join empagepag on e81_codmov = e85_codmov
-                inner join empagetipo on e85_codtipo = e83_codtipo
-                inner join empord on e81_codmov = e82_codmov
-                  left join empageslip on e81_codmov = e89_codmov
-                  left join (select distinct on (e74_empagemov) *
-                                from empagemovdetalhetransmissao ) 
-                            as empagemovdetalhetransmissao on  empagemovdetalhetransmissao.e74_empagemov = empagemov.e81_codmov
-                  left join (select distinct on (empagemov) *
-                                from plugins.empagemovpagamento  )
-                            as empagemovpagamento on empagemovpagamento.empagemov = empagemov.e81_codmov
-                inner join conplanoreduz on e83_conta = c61_reduz and c61_anousu = ".db_getsession("DB_anousu")."
-                inner join conplanoconta on c63_codcon = c61_codcon and c63_anousu = c61_anousu
-                  left join slip on slip.k17_codigo = e89_codigo
-                  left join slipnum on slipnum.k17_codigo = slip.k17_codigo
-                  left join empageconfcanc on e88_codmov = e81_codmov
-                  left join empagemovconta on e81_codmov = e98_codmov
-                  left join pcfornecon on pc63_contabanco = e98_contabanco
-                  left join cgm on z01_numcgm = pc63_numcgm
-              where e80_instit = " . db_getsession("DB_instit") . " and e81_codmov = {$e81_codmov}";
-            $sqlSlip = "
-              select  
-                (case when pc63_conta is null then descrconta.c63_conta
-                   else pc63_conta end )::varchar as pc63_conta,
-                null as pc63_contabanco,
-                coalesce((case when pc63_conta_dig is null then descrconta.c63_dvconta
-                 else pc63_conta_dig end ),'0')::varchar as pc63_conta_dig,
-                coalesce(pc63_banco, descrconta.c63_banco) as pc63_banco,
-                'slip' as e60_codemp,
-                case when fatura = 't' then 2 else 1 end as comfatura,
-                e74_codigodebarra as codigobarras,
-                (case when ar.slip is null then sliptipooperacaovinculo.k153_slipoperacaotipo else 1 end) as slipvinculo
-              from empagemov                
-                  inner join empagemovtipotransmissao on e25_empagemov = e81_codmov
-                    left join plugins.empagemovtipotransmissaofatura on empagemovtipotransmissaofatura.empagemovtipotransmissao = e25_sequencial 
-                  inner join empage                   on empage.e80_codage  = empagemov.e81_codage
-                  inner join empagepag                on e81_codmov         = e85_codmov
-                  inner join empagetipo               on e85_codtipo        = e83_codtipo
-                  inner join empageslip               on e81_codmov         = e89_codmov
-                  inner join conplanoreduz            on c61_reduz          = e83_conta
-                                                     and c61_anousu         = ".db_getsession("DB_anousu")."
-                  inner join conplanoconta            on c63_codcon         = c61_codcon
-                                                     and c63_anousu         = c61_anousu
-                  inner join slip                     on slip.k17_codigo    = e89_codigo
-                  inner join sliptipooperacaovinculo         on slip.k17_codigo = sliptipooperacaovinculo.k153_slip
-                  inner join slipnum                  on slipnum.k17_codigo = slip.k17_codigo
-                  inner join plugins.saltesdepart on c61_reduz = saltes
-                  inner join db_depart on depart = coddepto
-                  inner join db_depusu on db_depart.coddepto = db_depusu.coddepto and db_depusu.id_usuario = ".db_getsession("DB_id_usuario")."
-                    left join empageconfcanc            on e88_codmov         = e81_codmov
-                    left join empagemovconta            on e81_codmov         = e98_codmov
-                    left join pcfornecon                on pc63_contabanco    = e98_contabanco
-                    left join cgm                       on z01_numcgm         = pc63_numcgm
-                    left join cgm cgmslip               on cgmslip.z01_numcgm = slipnum.k17_numcgm
-                    left join conplanoreduz cre         on cre.c61_reduz      = k17_debito
-                                                       and cre.c61_anousu     = ".db_getsession("DB_anousu")."
-                    left join conplano concre           on concre.c60_codcon  = cre.c61_codcon
-                                                       and concre.c60_anousu  = cre.c61_anousu
-
-                    left join conplanoconta descrconta  on concre.c60_codcon  = descrconta.c63_codcon
-                                                       and concre.c60_anousu  = descrconta.c63_anousu
-                    left join plugins.autorizacaorepasse ar on slip.k17_codigo = ar.slip
-                    left join (select  distinct on (e74_empagemov) *
-                                              from empagemovdetalhetransmissao )
-                                            as empagemovdetalhetransmissao on  empagemovdetalhetransmissao.e74_empagemov = empagemov.e81_codmov
-                    left join (select  distinct on (empagemov) * 
-                                             from plugins.empagemovpagamento)
-                                            as empagemovpagamento on empagemovpagamento.empagemov = empagemov.e81_codmov
-                where e80_instit = " . db_getsession("DB_instit") . " and e81_codmov = {$e81_codmov} ";
+            $sqlOrdem = "select pc63_conta::varchar,
+                                pc63_contabanco::varchar,
+                                coalesce(pc63_conta_dig,'0') as pc63_conta_dig,
+                                coalesce(pc63_banco,'000') as pc63_banco,
+                                e60_codemp,
+                                case when fatura = 't' then 2 else 1 end as comfatura,
+                                e74_codigodebarra as codigobarras,
+                                null::integer as slipvinculo
+                           from empagemov
+                                inner join empagemovtipotransmissao               on e25_empagemov     = e81_codmov
+                                 left join plugins.empagemovtipotransmissaofatura on empagemovtipotransmissaofatura.empagemovtipotransmissao = e25_sequencial
+                                inner join empage                                 on empage.e80_codage = empagemov.e81_codage
+                                inner join empempenho                             on e60_numemp        = e81_numemp
+                                inner join orcdotacao                             on e60_coddot        = o58_coddot 
+                                                                                 and e60_anousu        = o58_anousu
+                                inner join empagepag                              on e81_codmov        = e85_codmov
+                                inner join empagetipo                             on e85_codtipo       = e83_codtipo
+                                inner join empord                                 on e81_codmov        = e82_codmov
+                                 left join empageslip                             on e81_codmov        = e89_codmov
+                                 left join (select distinct on (e74_empagemov) * from empagemovdetalhetransmissao ) as empagemovdetalhetransmissao on  empagemovdetalhetransmissao.e74_empagemov = empagemov.e81_codmov
+                                 left join (select distinct on (empagemov) * from plugins.empagemovpagamento  ) as empagemovpagamento on empagemovpagamento.empagemov = empagemov.e81_codmov
+                                inner join conplanoreduz                          on c61_codcon       in (select c61_codcon from conplanoreduz where c61_reduz = empagetipo.e83_conta)
+                                                                                 and c61_anousu         = ".db_getsession("DB_anousu")."
+                                inner join conplanoconta                          on c63_codcon         = c61_codcon 
+                                                                                 and c63_anousu         = c61_anousu
+                                 left join slip                                   on slip.k17_codigo    = e89_codigo
+                                 left join slipnum                                on slipnum.k17_codigo = slip.k17_codigo
+                                 left join empageconfcanc                         on e88_codmov         = e81_codmov
+                                 left join empagemovconta                         on e81_codmov         = e98_codmov
+                                 left join pcfornecon                             on pc63_contabanco    = e98_contabanco
+                                 left join cgm                                    on z01_numcgm         = pc63_numcgm
+                          where e80_instit = " . db_getsession("DB_instit") . " 
+                            and e81_codmov = {$e81_codmov}";
+            $sqlSlip = "select (case 
+                                  when pc63_conta is null 
+                                    then descrconta.c63_conta else pc63_conta end )::varchar as pc63_conta,
+                               null as pc63_contabanco,
+                               coalesce((case 
+                                           when pc63_conta_dig is null 
+                                             then descrconta.c63_dvconta
+                                           else pc63_conta_dig 
+                                         end ),'0')::varchar as pc63_conta_dig,
+                               coalesce(pc63_banco, descrconta.c63_banco) as pc63_banco,
+                               'slip' as e60_codemp,
+                               case 
+                                 when fatura = 't' 
+                                   then 2 
+                                 else 1 
+                               end as comfatura,
+                               e74_codigodebarra as codigobarras,
+                               (case when ar.slip is null then sliptipooperacaovinculo.k153_slipoperacaotipo else 1 end) as slipvinculo
+                          from empagemov                
+                               inner join empagemovtipotransmissao               on e25_empagemov        = e81_codmov
+                                left join plugins.empagemovtipotransmissaofatura on empagemovtipotransmissaofatura.empagemovtipotransmissao = e25_sequencial 
+                               inner join empage                                 on empage.e80_codage    = empagemov.e81_codage
+                               inner join empagepag                              on e81_codmov           = e85_codmov
+                               inner join empagetipo                             on e85_codtipo          = e83_codtipo
+                               inner join empageslip                             on e81_codmov           = e89_codmov
+                               inner join conplanoreduz                          on c61_reduz            = e83_conta
+                                                                                and c61_anousu           = ".db_getsession("DB_anousu")."
+                               inner join conplanoconta                          on c63_codcon           = c61_codcon
+                                                                                and c63_anousu           = c61_anousu
+                               inner join slip                                   on slip.k17_codigo      = e89_codigo
+                               inner join sliptipooperacaovinculo                on slip.k17_codigo      = sliptipooperacaovinculo.k153_slip
+                               inner join slipnum                                on slipnum.k17_codigo   = slip.k17_codigo
+                               inner join plugins.saltesdepart                   on c61_reduz            = saltes
+                               inner join db_depart                              on depart               = coddepto
+                               inner join db_depusu                              on db_depart.coddepto   = db_depusu.coddepto 
+                                                                                and db_depusu.id_usuario = ".db_getsession("DB_id_usuario")."
+                                left join empageconfcanc                         on e88_codmov           = e81_codmov
+                                left join empagemovconta                         on e81_codmov           = e98_codmov
+                                left join pcfornecon                             on pc63_contabanco      = e98_contabanco
+                                left join cgm                                    on z01_numcgm           = pc63_numcgm
+                                left join cgm cgmslip                            on cgmslip.z01_numcgm   = slipnum.k17_numcgm
+                                left join conplanoreduz cre                      on cre.c61_reduz        = k17_debito
+                                                                                and cre.c61_anousu       = ".db_getsession("DB_anousu")."
+                                left join conplano concre                        on concre.c60_codcon    = cre.c61_codcon
+                                                                                and concre.c60_anousu    = cre.c61_anousu
+                                left join conplanoconta descrconta               on concre.c60_codcon    = descrconta.c63_codcon
+                                                                                and concre.c60_anousu    = descrconta.c63_anousu
+                                left join plugins.autorizacaorepasse ar          on slip.k17_codigo = ar.slip
+                                left join (select  distinct on (e74_empagemov) * from empagemovdetalhetransmissao ) as empagemovdetalhetransmissao on empagemovdetalhetransmissao.e74_empagemov = empagemov.e81_codmov
+                                left join (select  distinct on (empagemov) * from plugins.empagemovpagamento) as empagemovpagamento                on empagemovpagamento.empagemov = empagemov.e81_codmov
+                         where e80_instit = " . db_getsession("DB_instit") . " 
+                           and e81_codmov = {$e81_codmov} ";
+                         
               $sqlMov = $sqlOrdem." union ".$sqlSlip;
               $result_empagegera = db_query($sqlMov);
               $oEmpAgeGera = db_utils::fieldsMemory($result_empagegera, 0);
-
               if (!empty($oEmpAgeGera->codigobarras)) {
                 $tipooperacao = 38;
               } else {
                 // SLIP
                 if ($oEmpAgeGera->e60_codemp == "slip") {
-
                   if ($oEmpAgeGera->pc63_banco == "001") {
-                    if ($oEmpAgeGera->slipvinculo == 13) { // RetenÃ§Ã£o BB
+                    if ($oEmpAgeGera->slipvinculo == 13) { // Retenção BB
                       if ($oEmpAgeGera->comfatura == 2) {
                         $tipooperacao = 33;
                       } else {
@@ -1378,41 +1793,18 @@ exit;
                   } 
                 }
               }
-              
               echo $tipooperacao;
             ?>
           </td>
         ]]>
       </add>
-    </operation>    
-
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte6] */]]></search>
-      <add position="after">
-        <![CDATA[
-          $codigopagamento = "-";
-          if ($e60_codemp != 0) {
-            $codigopagamento = "Pagamento de Empenho";
-          } else {
-            if ($tiposlip == 1) {
-              $codigopagamento = "TransferÃªncia";
-            } else if ($tiposlip == 2) {
-              $codigopagamento = "RetenÃ§Ã£o";
-            } else if ($tiposlip == 3) {
-              $codigopagamento = "TransferÃªncia (Repasse)";
-            } else {
-              $codigopagamento = "-";
-            }
-          }
-         ]]>
-      </add>
-    </operation>         
+    </operation>  
   </file>
   
   <file path='emp4_empageconfgera001.php'>
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN] */]]></search>
-      <add position="after">
+      <search regex="true"><![CDATA[(\?>\n*\s*<html>)]]></search>
+      <add>
         <![CDATA[
 if (!isset($unidades)) {
   db_destroysession("geracao_txt_unidades");
@@ -1424,94 +1816,106 @@ if (isset($geraUnidade)) {
   $oDadosDepartOrg = db_utils::fieldsMemory($rsDepartOrg, 0);
   $filtroUnidade = $oDadosDepartOrg->db01_orgao.":".$oDadosDepartOrg->db01_unidade;
 }
-        ]]>
+        $1]]>
       </add>
     </operation>
-    
-    <operation>
-      <search><![CDATA[include("forms/db_frmempageconfgera.php");]]></search>
-      <add position="replace">
-        <![CDATA[include(modification("forms/db_frmempageconfgera.php"));]]>
-      </add>
-    </operation>    
-    
   </file>
   
-  <file path='forms/db_frmempageconfgera.php'>
+    <file path='forms/db_frmempageconfgera.php'>
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte1] */]]></search>
-      <add position="after">
-        <![CDATA[
-        $filtroTipoTransmissao = ParametroCaixa::getTipoTransmissaoPadrao();
-        if (empty($filtroTipoTransmissao)) {
-            $filtroTipoTransmissao = 1;
-        }
+      <search regex="true"><![CDATA[(\$_POST\['filtroTipoTransmissao'\]\s*=\s*1\s*;\s*\n*\s*})]]></search>
+      <add>
+        <![CDATA[$1
+        
+/* Inicio GeracaoArquivoOBN */
+$filtroTipoTransmissao = ParametroCaixa::getTipoTransmissaoPadrao();
+if (empty($filtroTipoTransmissao)) {
+    $filtroTipoTransmissao = 1;
+}
+/* Fim GeracaoArquivoOBN */
         ]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte2] */]]></search>
-      <add position="after">
-        <![CDATA[
+      <search regex="true"><![CDATA[(js_divCarregando\("Aguarde, gerando arquivo TXT..."\s*,\s*"msgBox"\s*\)\s*;)]]></search>
+      <add>
+        <![CDATA[$1
+/* Inicio GeracaoArquivoOBN */        
   var objAtualizar = document.getElementById("btnAtualizar");
   var objDesatualizar = document.getElementById("btnDesatualizar");
   objAtualizar.disabled = true;
-  objDesatualizar.disabled = true;]]>
+  objDesatualizar.disabled = true;
+/* Fim GeracaoArquivoOBN */]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte3] */]]></search>
-      <add position="after">
+      <search regex="true"><![CDATA[(js_gerarArquivoOBN\s*\(\s*coluna\s*,\s*sDescricao\s*,\s*dtGeracao\s*,\s*dtPagamento\)\s*;)]]></search>
+      <add>
+        <![CDATA[$1
+    /* Inicio GeracaoArquivoOBN */    
+    js_inicializarUnidades();
+    /* Fim GeracaoArquivoOBN */]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(if\s*\(\s*!confirm\s*\(\s*sMsgConfirmaPagamento\s*\)\s*\)\s*{)]]></search>
+      <add>
+        <![CDATA[$1
+        
+        /* Inicio GeracaoArquivoOBN */
+        js_inicializarUnidades();
+        /* Fim GeracaoArquivoOBN */]]>
+        
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(alert\(\s*sMsgRetencaoMesAnterior\s*\)\s*;)]]></search>
+      <add>
+        <![CDATA[$1
+     /* Inicio GeracaoArquivoOBN */   
+     js_inicializarUnidades();
+     /* Fim GeracaoArquivoOBN */]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(document.form1.nmov.value\s*=\s*ncoluna\s*;)]]></search>
+      <add>
+        <![CDATA[$1
+     /* Inicio GeracaoArquivoOBN */   
+     js_inicializarUnidades();
+     /* Fim GeracaoArquivoOBN */]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(alert\(\s*"Selecione algum item para cancelar."\s*\)\s*;\s*\n*\s*})]]></search>
+      <add>
+        <![CDATA[$1
+     /* Inicio GeracaoArquivoOBN */
+     js_inicializarUnidades();
+     /* Fim GeracaoArquivoOBN */]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(}\n*\s*function\s*js_mostravalores\(\s*\)\s*{)]]></search>
+      <add>
         <![CDATA[
-    js_inicializarUnidades();]]>
+        /* Inicio GeracaoArquivoOBN */
+        js_inicializarUnidades();
+        /* Fim GeracaoArquivoOBN */
+$1]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte4] */]]></search>
-      <add position="after">
-        <![CDATA[
-        js_inicializarUnidades();]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte5] */]]></search>
-      <add position="after">
-        <![CDATA[
-     js_inicializarUnidades();]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte6] */]]></search>
-      <add position="after">
-        <![CDATA[
-     js_inicializarUnidades();]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte7] */]]></search>
-      <add position="after">
-        <![CDATA[
-     js_inicializarUnidades();]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte8] */]]></search>
-      <add position="after">
-        <![CDATA[
-     js_inicializarUnidades();]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[<!-- [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte9] -->]]></search>
-      <add position="after">
+      <search regex="true"><![CDATA[(<\/table>\s*\n*\s*<\/fieldset>)]]></search>
+      <add>
         <![CDATA[
       <tr id="ctnfiltroUnidade" style="display: none;">
         <td>
@@ -1523,32 +1927,29 @@ if (isset($geraUnidade)) {
           ?>
         </td>
       </tr>
-        ]]>
+      
+      $1]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[<input name="atualizar" type="submit"]]></search>
-      <add position="replace">
+      <search regex="true"><![CDATA[<input\s*name="atualizar"\s*type="submit"]]></search>
+      <add>
         <![CDATA[<input id="btnAtualizar" name="atualizar" type="submit"]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[<input name="desatualizar" type="submit"]]></search>
-      <add position="replace">
+      <search regex="true"><![CDATA[<input\s*name="desatualizar"\s*type="submit"]]></search>
+      <add>
         <![CDATA[<input id="btnDesatualizar" name="desatualizar" type="submit"]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[<!-- [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte11] -->
-  <iframe name         ="ordem"
-          src          ='emp4_empageconfgera001_ordem.php?db_banco=<?=(@$db_bancos)?>&comboboxCNPJ=<?php echo $_POST['comboboxCNPJ'];?>&filtroTipoTransmissao=<?php echo $_POST['filtroTipoTransmissao'];?>']]></search>
-      <add position="replace">
-        <![CDATA[
-  <!-- [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte11] -->
-  <input id="unidades" type="hidden" size = "50" name='unidades'>
+      <search regex="true"><![CDATA[<iframe\s*name\s*="ordem".*\n*.*;?>']]></search>
+      <add>
+        <![CDATA[<input id="unidades" type="hidden" size = "50" name='unidades'>
   <iframe name         ="ordem"
           id           ="ordem" 
           src          ='emp4_empageconfgera001_ordem.php?db_banco=<?=(@$db_bancos)?>&comboboxCNPJ=<?php echo $_POST['comboboxCNPJ'];?>&filtroTipoTransmissao=<?=$filtroTipoTransmissao?>&filtroUnidade=<?=$filtroUnidade?>']]>
@@ -1556,9 +1957,10 @@ if (isset($geraUnidade)) {
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte12] */]]></search>
-      <add position="after">
-        <![CDATA[
+      <search regex="true"><![CDATA[(var\s*iCodigoBancoBrasil\s*=.*;)]]></search>
+      <add>
+        <![CDATA[$1
+        
 var lMostraFiltroUnidade = <?= !isset($geraUnidade)?"true":"false"; ?>;
 
 window.onload = function() {
@@ -1616,12 +2018,26 @@ function js_MontaOptionsSelectUnidade() {
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte13] */     
-function js_recarregaIframeMovimentos() {
-  $$('iframe[name="ordem"]')[0].contentDocument.location = 'emp4_empageconfgera001_ordem.php?db_banco=&comboboxCNPJ=&filtroTipoTransmissao=';]]></search>
-      <add position="replace">
+      <search regex="true" flag="U"><![CDATA[(if\s*\(oRetorno.iStatus\s*==\s*'1'\)\s*\{)((\n*.*)*})]]></search>
+      <add>
+        <![CDATA[$1
+      if (!lMostraFiltroUnidade) {
+         var emiteComprovante = confirm("Os arquivos foram gerados com sucesso.\n CÃ³digo da Remessa: "+oRetorno.iCodigoRemessa+" \n Deseja emitir o comprovante?");
+         if (emiteComprovante) {
+           jan = window.open('emp2_gerarq002.php?lCancelado=0&e87_codgera='+oRetorno.iCodigoRemessa+'','width='+(screen.availWidth-5)+',height='+(screen.availHeight-40)+',scrollbars=1,location=0 ');
+         }
+      } else {
+        var pArquivo = oRetorno.sArquivo+"# Download do Arquivo - "+ oRetorno.sArquivo;
+        js_montarlista(pArquivo, 'form1');
+      }
+  }]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(function\s*js_recarregaIframeMovimentos\(\)\s*{\n*.*\n*.*})]]></search>
+      <add>
         <![CDATA[
-/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte13] */     
 function js_recarregaIframeMovimentos() {
 
   <? if (isset($geraUnidade)) { ?>
@@ -1641,79 +2057,31 @@ function js_recarregaIframeMovimentos() {
   objAtualizar.disabled = false;
   objDesatualizar.disabled = false;
           
-        ]]>
+}]]>
       </add>
     </operation>
     
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte14] */      
-  if ($F('comboboxCNPJ') == "0") {
-
-    alert("Selecione um CNPJ para carregar os movimentos bancÃ¡rios.");
-    return false;
-  }]]></search>
-      <add position="replace">
-        <![CDATA[
-        /* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte14] */
-        /*
-        if ($F('comboboxCNPJ') == "0") {
-
-          alert("Selecione um CNPJ para carregar os movimentos bancÃ¡rios.");
-          return false;
-        }*/ 
-        ]]>
-      </add>
-    </operation>
-    
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Filtros Emissao Arquivo OBN - parte15] */]]></search>
-      <add position="after">
-        <![CDATA[
-  var objSelect = document.getElementById("filtroUnidade");
+      <search regex="true"><![CDATA[(document.form1.submit\(\);)]]></search>
+      <add>
+        <![CDATA[var objSelect = document.getElementById("filtroUnidade");
   var selected = objSelect.selectedIndex;
   localStorage.setItem("selectedUnidade", selected);
+  
+  $1
         ]]>
       </add>
     </operation>
-
-   /* 
-    <operation>
-      <search><![CDATA[if (oRetorno.iStatus == '1') {
-
-    var pArquivo = oRetorno.sArquivo+"# Download do Arquivo - "+ oRetorno.sArquivo;
-    js_montarlista(pArquivo, 'form1');
-  } else {
-    alert(oRetorno.sMessage.urlDecode());
-  }]]></search>
-      <add position="replace">
-        <![CDATA[if (oRetorno.iStatus == '1') {
-      if (!lMostraFiltroUnidade) {
-         var emiteComprovante = confirm("Os arquivos foram gerados com sucesso.\n CÃ³digo da Remessa: "+oRetorno.iCodigoRemessa+" \n Deseja emitir o comprovante?");
-         if (emiteComprovante) {
-           jan = window.open('emp2_gerarq002.php?lCancelado=0&e87_codgera='+oRetorno.iCodigoRemessa+'','width='+(screen.availWidth-5)+',height='+(screen.availHeight-40)+',scrollbars=1,location=0 ');
-         }
-      } else {
-        var pArquivo = oRetorno.sArquivo+"# Download do Arquivo - "+ oRetorno.sArquivo;
-        js_montarlista(pArquivo, 'form1');
-      }
-    } else {
-      alert(oRetorno.sMessage.urlDecode());
-    }
-]]>
-      </add>
-    </operation>
-*/
-    
   </file>
   
   <file path='cai4_arquivoBanco004.RPC.php'>
     <operation>
-      <search><![CDATA[case "gerarArquivoTXT":]]></search>
-      <add position="after">
-        <![CDATA[
-
+      <search regex="true"><![CDATA[(case\s*"gerarArquivoTXT"\s*\:)]]></search>
+      <add>
+        <![CDATA[$1
+        
       /*
-       * Validamos se o movimento consta em outra geraÃ§Ã£o de arquivo ativa
+       * Validamos se o movimento consta em outra geração de arquivo ativa
        */
       $oDaoEmpAgeConfGera = db_utils::getDao("empageconfgera");	
       foreach (explode(",", $oParam->sMovimentos) as $iMovimento) {
@@ -1722,15 +2090,23 @@ function js_recarregaIframeMovimentos() {
       	  throw new Exception("Movimento de agenda {$iMovimento} consta em outro arquivo ativo");	
       	}
       	
-      }
-          ]]>
+      }]]>
       </add>
     </operation>
-
+    
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - Salvar Geracao Arquivo TXT OBN - parte1] */]]></search>
-      <add position="after">
-        <![CDATA[
+      <search regex="true"><![CDATA[(\$oRetorno->sArquivo\s*=.*;)]]></search>
+      <add>
+        <![CDATA[$1
+      $oRetorno->iCodigoRemessa = $oGeradorArquivoOBN->getCodigoRemessa();
+]]>
+      </add>
+    </operation>    
+    
+    <operation>
+      <search regex="true"><![CDATA[(\$oGeradorArquivoOBN->regerarArquivo\(\);)]]></search>
+      <add>
+        <![CDATA[$1
         $oGeradorArquivoOBN->salvarGeracaoTxtArquivo();
         ]]>
       </add>
@@ -1738,19 +2114,38 @@ function js_recarregaIframeMovimentos() {
   </file>  
   
   <file path='forms/db_frmmanutencaoagenda.php'>
+  
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Efetuar pagamento DEB ou DIN - parte1] */
-    var sCombo  = "<select style='width:100%' class='formapag' id='forma"+iCodMov+"' "+sDisabled+">";]]></search>
-      <add position="replace">
-        <![CDATA[
-    /* [Inicio plugin GeracaoArquivoOBN - Efetuar pagamento DEB ou DIN - parte1] */
-    var sCombo  = "<select style='width:100%' class='formapag' id='forma"+iCodMov+"' "+sDisabled+" onchange='js_formaPagamentoAlterada(this.value)'>";]]>
+      <search regex="true"><![CDATA[(onclick=.*js_visualizarRelatorio\(\).*>)]]></search>
+      <add>
+        <![CDATA[$1
+            <?
+             /* Inicio Plugin GeracaoArquivoOBN */
+             if(db_permissaomenu(db_getsession("DB_anousu"), db_getsession("DB_modulo"), 4369) === "true"){
+               echo "<script> document.form1.emitetxt.disabled = true; </script>";
+             }
+             
+             if (db_permissaomenu(db_getsession("DB_anousu"), db_getsession("DB_modulo"), 9755) === "true") {
+
+              echo "<input name='btnConfigurarMovimentos' id='btnConfigurarMovimentos' value='Configurações de Envio' type='button'";
+              echo "onclick=\"window.location='emp4_configuracaoarquivoenvio001.php'\" />";
+             }
+            /* Fim Plugin GeracaoArquivoOBN */
+            ?>
+             ]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(var\s*sCombo\s*=\s*"<select.*formapag.*)(>";)]]></search>
+      <add>
+        <![CDATA[$1 onchange='js_formaPagamentoAlterada(this.value)' $2]]>
       </add>
     </operation>
 
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Efetuar pagamento DEB ou DIN - parte2] */]]></search>
-      <add position="after">
+      <search regex="true"><![CDATA[(function\s*js_createComboContasForne)]]></search>
+      <add>
         <![CDATA[
   function js_formaPagamentoAlterada(formaPagamento){
     
@@ -1758,34 +2153,38 @@ function js_recarregaIframeMovimentos() {
       document.getElementById("efetuarpagamento").click(); 
       $('autenticar').checked = false;
     }  
-  }]]>
+  }
+  
+  $1]]>
       </add>
     </operation>
 
     <operation>
-      <search><![CDATA[<input name="emitetxt" id='emitetxt' type="button"
-                   value='Emitir Arquivo Texto' onclick='location.href="emp4_empageconfgera001.php"' />]]></search>
-      <add position="replace">
-        <![CDATA[<input name="emitetxt" id='emitetxt' type="button"
-                   value='Emitir Arquivo Texto' onclick='location.href="emp4_empageconfgera001.php?geraUnidade"' />]]>
+      <search regex="true"><![CDATA[location.href\s*=\s*("|')emp4_empageconfgera001.php("|')]]></search>
+      <add>
+        <![CDATA[location.href="emp4_empageconfgera001.php?geraUnidade"]]>
+      </add>
+    </operation>
+    
+    <operation>
+      <search regex="true" flag="U"><![CDATA[(if\s*\(typeof\s*oLiquidacaoPendente(.*\n*)*function\s*efetuarPagamentos\s*\(.*\)\s*{)]]></search>
+      <add>
+        <![CDATA[/* $1 */]]>
       </add>
     </operation>
   </file>
-
-  <file path='forms/db_frmmanutencaoagendaslip.php'>
+  
+    <file path='forms/db_frmmanutencaoagendaslip.php'>
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Efetuar pagamento DEB ou DIN - parte1] */
-    var sCombo  = "<select style='width:100%' class='formapag' id='forma"+iCodMov+"' "+sDisabled+">";]]></search>
-      <add position="replace">
-        <![CDATA[
-    /* [Inicio plugin GeracaoArquivoOBN - Efetuar pagamento DEB ou DIN - parte1] */
-    var sCombo  = "<select style='width:100%' class='formapag' id='forma"+iCodMov+"' "+sDisabled+" onchange='js_formaPagamentoAlterada(this.value)'>";]]>
+      <search regex="true"><![CDATA[(var\s*sCombo\s*=\s*"<select.*formapag.*)(>";)]]></search>
+      <add>
+        <![CDATA[$1 onchange='js_formaPagamentoAlterada(this.value)' $2]]>
       </add>
     </operation>
 
     <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Efetuar pagamento DEB ou DIN - parte2] */]]></search>
-      <add position="after">
+      <search regex="true"><![CDATA[(function\s*js_createComboContasForne)]]></search>
+      <add>
         <![CDATA[
   function js_formaPagamentoAlterada(formaPagamento){
     
@@ -1793,168 +2192,114 @@ function js_recarregaIframeMovimentos() {
       document.getElementById("efetuarpagamento").click(); 
       $('autenticar').checked = false;
     }  
-  }]]>
+  }
+  
+  $1]]>
       </add>
     </operation>
 
     <operation>
-      <search><![CDATA[<input name="emitetxt" id='emitetxt' type="button"  value='Emitir Arquivo Texto' onclick='location.href="emp4_empageconfgera001.php"'>]]></search>
-      <add position="replace">
-        <![CDATA[<input name="emitetxt" id='emitetxt' type="button"  value='Emitir Arquivo Texto' onclick='location.href="emp4_empageconfgera001.php?geraUnidade"'>]]>
-      </add>
-    </operation>
-
-  </file>
-
-  <file path='emp4_manutencaoslips001.php'>
-    <operation>
-      <search><![CDATA[require_once("forms/db_frmmanutencaoagendaslip.php");]]></search>
-      <add position="replace">
-        <![CDATA[require_once(Modification::getFile("forms/db_frmmanutencaoagendaslip.php"));]]>
+      <search regex="true"><![CDATA[location.href\s*=\s*("|')emp4_empageconfgera001.php("|')]]></search>
+      <add>
+        <![CDATA[location.href="emp4_empageconfgera001.php?geraUnidade"]]>
       </add>
     </operation>
   </file>
-
+  
   <file path='cai2_retornobanco002.php'>
     <operation>
-      <search><![CDATA[$dbwhere = " e75_codret = ".$retorno . " and e75_ativo is true and e90_cancelado is false ";]]></search>
-      <add position="replace">
+      <search regex="true"><![CDATA[$dbwhere\s*=\s*("|')\s*e75_codret\s*=.*\$retorno.*e75_ativo is true\s*and\s*e90_cancelado is false\s*("|')\s*;]]></search>
+      <add>
         <![CDATA[$dbwhere = " e80_instit = " . db_getsession("DB_instit") . " and e75_codret = ".$retorno . " and e75_ativo is true and (case when empageconfgera.e90_codmov is not null then empageconfgera.e90_cancelado is false else true end) ";]]>
       </add>
     </operation>
 
     <operation>
-      <search><![CDATA[$sTextoOcorrencia .= "{$sVirgula}{$oOcorrencia->e92_descrerro}";]]></search>
-      <add position="replace">
+      <search regex="true"><![CDATA[e76_codret,\n*\s*e81_codmov,]]></search>
+      <add>
+        <![CDATA[e76_codret,
+                                               e81_codmov as e86_codmov,]]>
+      </add>
+    </operation> 
+
+    <operation>
+      <search regex="true"><![CDATA[(fc_valorretencaomov.*vlrretencao\s*,)]]></search>
+      <add>
+        <![CDATA[$1
+                                                (select observacao 
+                                                   from plugins.empagedadosretmovocorrenciaobservacao 
+                                                  where empagedadosretmovocorrencia = empagedadosretmovocorrencia.e02_sequencial),]]>
+      </add>
+    </operation>    
+
+    <operation>
+      <search regex="true"><![CDATA[\$sTextoOcorrencia\s*.=\s*("|'){\$sVirgula}\s*{\$oOcorrencia->e92_descrerro}("|')\s*;]]></search>
+      <add>
         <![CDATA[$oObs = db_utils::fieldsMemory($result_retorno,$i);
       $sTextoOcorrencia .= "{$sVirgula}{$oOcorrencia->e92_descrerro} - {$oObs->observacao}";]]>
       </add>
     </operation>
 
-    <operation>
-      <search><![CDATA[                                                fc_valorretencaomov(e81_codmov, true,e87_dataproc) as vlrretencao,
-                                                e83_codtipo,
-                                                e83_descr",]]></search>
-      <add position="replace">
-        <![CDATA[                                                fc_valorretencaomov(e81_codmov, true,e87_dataproc) as vlrretencao,
-                                                e83_codtipo,
-                                                e83_descr,
-                                                (select 
-                                                  observacao 
-                                                from plugins.empagedadosretmovocorrenciaobservacao 
-                                                where empagedadosretmovocorrencia = empagedadosretmovocorrencia.e02_sequencial)",]]>
-      </add>
-    </operation>
   </file>
-
-  <file path='cai1_planilhalancamento001.php'>
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lanÃ§amento deduÃ§Ã£o - parte1] */]]></search>
-      <add position="after">
-        <![CDATA[
-  if ($('estrutural').value.substr(0,1) == '9') {
-    $('k81_valor').value = "-";
-  } else {
-    $('k81_valor').value = "";
-  }]]>
-      </add>
-    </operation>
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lanÃ§amento deduÃ§Ã£o - parte2] */]]></search>
-      <add position="after">
-        <![CDATA[
-  var ContaReceitaLanc;
-  var ContaLanc;
-  for (var i = aContasReceita.length - 1; i >= 0; i--) {
-    ContaReceitaLanc = (aContasReceita[i] == $F('k81_receita') ? true : false);
-  }
-
-  for (var i = aContas.length - 1; i >= 0; i--) {
-    ContaLanc = (aContas[i] == $F('k81_conta') ? true : false);
-  }
-
-  if (ContaReceitaLanc && ContaLanc) {
-    alert("JÃ¡ foi inserida uma receita para essa conta.");
-    return false;
-  }]]>
-      </add>
-    </operation>
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lanÃ§amento deduÃ§Ã£o - parte3] */]]></search>
-      <add position="after">
-        <![CDATA[
- var aContasReceita = new Array();
- var aContas = new Array();]]>
-      </add>
-    </operation>
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lanÃ§amento deduÃ§Ã£o - parte4] */]]></search>
-      <add position="after">
-        <![CDATA[
-  aContasReceita.push($F('k81_receita'));]]>
-      </add>
-    </operation>
-    <operation>
-      <search><![CDATA[/* [Inicio plugin GeracaoArquivoOBN - Planilha de lanÃ§amento deduÃ§Ã£o - parte5] */]]></search>
-      <add position="after">
-        <![CDATA[
-  aContas.push($F('k81_conta'));]]>
-      </add>
-    </operation>
-  </file>
-
+  
   <file path='emp4_empageretornoconf001.php'>
 
     <operation>
-      <search><![CDATA[<td align="left">
-          <strong>Data da Baixa:</strong>
-          <?php db_inputdata('data_baixa', date('d', db_getsession("DB_datausu")), date('m', db_getsession("DB_datausu")), date('Y', db_getsession("DB_datausu")), true, 'text', 1); ?>
-        </td>]]></search>
-      <add position="replace">
+      <search regex="true" flag="U"><![CDATA[<td.*\n*.*Data.*Baixa.*\n*((\n*.*)*)<\/td>]]></search>
+      <add>
         <![CDATA[<td></td>]]>
       </add>
     </operation>
 
     <operation>
-      <search><![CDATA[$oDataSistema = new DBDate($data_baixa);]]></search>
-      <add position="replace">
+      <search regex="true"><![CDATA[\$oDataSistema\s*=\s*new\s*DBDate\(\s*\$data_baixa\s*\)\s*;]]></search>
+      <add>
         <![CDATA[]]>
       </add>
     </operation>
 
     <operation>
-      <search><![CDATA[$sSqlDadosEmpagedadosretmov = $clempagedadosretmov->sql_query_file(null,null,"e76_codret, e76_codmov",null,$sWhere);]]></search>
-      <add position="replace">
+      <search regex="true"><![CDATA[(\$sSqlDadosEmpagedadosretmov\s*=\s*\$clempagedadosretmov->.*\);)]]></search>
+      <add>
         <![CDATA[$sSqlDadosEmpagedadosretmov = $clempagedadosretmov->sql_query_file(null,null,"e76_codret, e76_codmov, e76_dataefet",null,$sWhere);]]>
       </add>
     </operation>
 
     <operation>
-      <search><![CDATA[$movimento  = $oDados->e76_codmov;]]></search>
-      <add position="after">
-        <![CDATA[
+      <search regex="true"><![CDATA[(\$movimento\s*=\s*\$oDados->e76_codmov\s*;)]]></search>
+      <add>
+        <![CDATA[$1
     $oDataSistema = new DBDate($oDados->e76_dataefet);
         ]]>
       </add>
     </operation>
   </file>
-
-  <file path='func_mostratotal.php'>
+  
+  <file path='emp2_gerarq002.php'>
     <operation>
-      <search regex="true"><![CDATA[(e81_valor)(\).*as)]]></search>
+      <search regex="true"><![CDATA[(\$HEAD3\s*=\s*"RELATÓRIO DE ARQUIVOS GERADOS";)]]></search>
       <add>
-        <![CDATA[$1 -(select coalesce(sum(e23_valorretencao),0)::numeric as valorRetido                   
-                                                                                                from retencaoreceitas                                                            
-                                                                                                    inner join retencaopagordem  on e23_retencaopagordem = e20_sequencial       
-                                                                                                    inner join retencaotiporec   on e23_retencaotiporec  = e21_sequencial       
-                                                                                                    inner join pagordemnota      on e20_pagordem         = e71_codord           
-                                                                                                    inner join retencaoempagemov on e27_retencaoreceitas = e23_sequencial       
-                                                                                                where e27_empagemov = e81_codmov                                                 
-                                                                                                  and e23_ativo     is true                                                        
-                                                                                                  and e27_principal is true) $2        
+        <![CDATA[
+/* [Inicio plugin GeracaoArquivoOBN] */        
+require_once("emp2_pluginGeracaoArquivoOBNRelatorioArquivosGerados002.php");
+exit;
+/* [Fim plugin GeracaoArquivoOBN] */
+$1
         ]]>
+      </add>
+    </operation>  
+  </file>
+  
+  <file path='emp4_configuracaoarquivoenvio001.php'>
+    <operation>
+      <search regex="true"><![CDATA[(require_once\s*\(\s*modification\s*\(\s*"*libs\/db_stdlib.php"\s*\)\s*\)\s*;)]]></search>
+      <add>
+        <![CDATA[
+require_once("emp4_configuracaoarquivoenvio001_natal.php");
+exit;
+$1]]>
       </add>
     </operation>
   </file>
-
+  
 </modification>

@@ -51,7 +51,7 @@ $sql_unid_gestora_slip = "select distinct o41_orgao||lpad(o41_unidade,2,'0') as 
                                  inner join empageslip               on e81_codmov         = e89_codmov
                                  inner join slip                     on slip.k17_codigo    = e89_codigo
                                  inner join slipnum                  on slipnum.k17_codigo = slip.k17_codigo
-                                 inner join conplanoreduz            on c61_reduz          = e83_conta
+                                 inner join conplanoreduz            on c61_codcon in (select c61_codcon from conplanoreduz where c61_reduz = e83_conta)
                                                                     and c61_anousu         = extract(year from k17_data) 
                                  inner join conplanoconta            on c63_codcon         = c61_codcon
                                                                     and c63_anousu         = c61_anousu
@@ -173,7 +173,7 @@ $sqlOrdem = "
       left      join (select distinct on (empagemov) *
                                         from plugins.empagemovpagamento  )
                                     as empagemovpagamento on empagemovpagamento.empagemov = empagemov.e81_codmov
-	  inner join conplanoreduz on e83_conta = c61_reduz and c61_anousu = ".db_getsession("DB_anousu")."
+	  inner join conplanoreduz on c61_codcon in (select c61_codcon from conplanoreduz where c61_reduz = e83_conta) and c61_anousu = ".db_getsession("DB_anousu")."
 	  inner join conplanoconta on c63_codcon = c61_codcon and c63_anousu = c61_anousu
 	  left join slip on slip.k17_codigo = e89_codigo
 	  left join slipnum on slipnum.k17_codigo = slip.k17_codigo
