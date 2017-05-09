@@ -10,17 +10,31 @@
       <file name="db_empagedadosretarquivo_classe.php"    path="/classes/db_empagedadosretarquivo_classe.php" />
       <file name="db_arquivoobngerado_classe.php"    path="/classes/db_arquivoobngerado_classe.php" />
       <file name="db_PluginGeracaoArquivoOBN_classe.php"    path="/classes/db_PluginGeracaoArquivoOBN_classe.php" />
+      <file name="db_empagemovdetalhetransmissaoautenticacao_classe.php"    path="/classes/db_empagemovdetalhetransmissaoautenticacao_classe.php" />
+      <file name="db_empagemovpagamentoautenticacao_classe.php"    path="/classes/db_empagemovpagamentoautenticacao_classe.php" />
+      <file name="db_empagemovpagamento_classe.php"    path="/classes/db_empagemovpagamento_classe.php" />
 
+      <!-- rpc -->
+      <file name="emp4_configuracaoarquivoenvio_natal.RPC.php"    path="/emp4_configuracaoarquivoenvio_natal.RPC.php" />
+
+      <!-- tela -->
+      <file name="emp4_configuracaoarquivoenvio001_natal.php"    path="/emp4_configuracaoarquivoenvio001_natal.php" />
+
+      <!-- dd -->
+      <file name="plugins.empagemovdetalhetransmissaoautenticacao.dd.xml"    path="/dd/tabelas/plugins.empagemovdetalhetransmissaoautenticacao.dd.xml" />
+      <file name="plugins.empagemovpagamento.dd.xml"    path="/dd/tabelas/plugins.empagemovpagamento.dd.xml" />
+      <file name="plugins.empagemovpagamentoautenticacao.dd.xml"    path="/dd/tabelas/plugins.empagemovpagamentoautenticacao.dd.xml" />
+      <file name="plugins.tipopagamento.dd.xml"    path="/dd/tabelas/plugins.tipopagamento.dd.xml" />
+      <file name="plugins.empagemovtipotransmissaofatura.dd.xml"    path="/dd/tabelas/plugins.empagemovtipotransmissaofatura.dd.xml" />
+      <file name="plugins.empagedadosretmovocorrenciaobservacao.dd.xml"    path="/dd/tabelas/plugins.empagedadosretmovocorrenciaobservacao.dd.xml" />
+      <file name="plugins.empagedadosretarquivo.dd.xml"    path="/dd/tabelas/plugins.empagedadosretarquivo.dd.xml" />
+      <file name="plugins.arquivoobngerado.dd.xml"    path="/dd/tabelas/plugins.arquivoobngerado.dd.xml" />
 
       <!-- outro -->
       <file name="GeracaoArquivoOBN.xml"    path="/modification/xml/GeracaoArquivoOBN.xml" />
       <file name="emp4_pluginGeracaoArquivoOBNArquivosProcessados001.php" path="/emp4_pluginGeracaoArquivoOBNArquivosProcessados001.php" />
       <file name="func_pluginGeracaoArquivoOBNArquivosProcessados.php" path="/func_pluginGeracaoArquivoOBNArquivosProcessados.php" />
       <file name="emp2_pluginGeracaoArquivoOBNRelatorioArquivosGerados002.php"    path="/emp2_pluginGeracaoArquivoOBNRelatorioArquivosGerados002.php" />
-      <file name="plugins.empagemovtipotransmissaofatura.dd.xml"    path="/dd/tabelas/plugins.empagemovtipotransmissaofatura.dd.xml" />
-      <file name="plugins.empagedadosretmovocorrenciaobservacao.dd.xml"    path="/dd/tabelas/plugins.empagedadosretmovocorrenciaobservacao.dd.xml" />
-      <file name="plugins.empagedadosretarquivo.dd.xml"    path="/dd/tabelas/plugins.empagedadosretarquivo.dd.xml" />
-      <file name="plugins.arquivoobngerado.dd.xml"    path="/dd/tabelas/plugins.arquivoobngerado.dd.xml" />
       <file name="cai4_emissaoarquivoobn001.php"    path="/cai4_emissaoarquivoobn001.php" />
 
     </files>
@@ -28,8 +42,7 @@
     </estrutura>
     
     <dependencies>
-      <plugin name="SlipDepartamento" version="1.0" />
-      <plugin name="ArquivoOBNGRU" version="1.0" />
+     <plugin name="SlipDepartamento" version="1.0" />
     </dependencies>
   
   </plugin>

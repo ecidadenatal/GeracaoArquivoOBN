@@ -20,19 +20,31 @@ drop sequence if exists plugins.liquidacaocompetencia_sequencial_seq;
 drop table if exists plugins.empenhonotacontroleinternohistoricousuario;
 drop sequence if exists plugins.empenhonotacontroleinternousuario_sequencial_seq;
 
+drop table plugins.tipopagamento;
+drop sequence plugins.tipopagamento_sequencial_seq; 
+
+drop table plugins.empagemovpagamento;
+drop sequence plugins.empagemovpagamento_sequencial_seq; 
+
+drop table plugins.empagemovdetalhetransmissaoautenticacao;
+drop sequence plugins.empagemovdetalhetransmissaoautenticacao_sequencial_seq; 
+
+drop table plugins.empagemovpagamentoautenticacao;
+drop sequence plugins.empagemovpagamentoautenticacao_sequencial_seq; 
+
 
 --Menus
-delete from configuracoes.db_menu   
-      using configuracoes.db_itensmenu 
-      where db_itensmenu.id_item = db_menu.id_item_filho 
-        and db_itensmenu.desctec = 'Plugin: GeracaoArquivoOBN';
-
-delete from configuracoes.db_permissao 
-      using configuracoes.db_itensmenu 
-      where db_itensmenu.id_item = db_permissao.id_item 
-        and db_itensmenu.desctec = 'Plugin: GeracaoArquivoOBN';
-
-delete from configuracoes.db_itensmenu 
-      where db_itensmenu.desctec = 'Plugin: GeracaoArquivoOBN';
+--delete from configuracoes.db_menu   
+--      using configuracoes.db_itensmenu 
+--      where db_itensmenu.id_item = db_menu.id_item_filho 
+--        and db_itensmenu.desctec = 'Plugin: GeracaoArquivoOBN';
+--
+--delete from configuracoes.db_permissao 
+--      using configuracoes.db_itensmenu 
+--      where db_itensmenu.id_item = db_permissao.id_item 
+--        and db_itensmenu.desctec = 'Plugin: GeracaoArquivoOBN';
+--
+--delete from configuracoes.db_itensmenu 
+--      where db_itensmenu.desctec = 'Plugin: GeracaoArquivoOBN';
 
                                                              

@@ -1,0 +1,57 @@
+<?xml version="1.0" standalone="yes" ?>
+<table name="plugins.empagemovdetalhetransmissaoautenticacao" description="Guarda os números de autenticação dos retornos de linha tipo 4" prefix="" label="Autenticação de movimentos" type="0">
+  <fields>
+    <field name="sequencial"
+           conteudo="int4"
+           description="Sequencial"
+           inivalue="0"
+           label="Sequencial"
+           size="10"
+           null="f"
+           uppercase="f"
+           autocompl="f"
+           aceitatipo="1"
+           tipoobj="text"
+           labelrel="Sequencial"
+           reference=""
+           ispk="t"
+           hassequence="t">
+      <sequence name="plugins.empagemovdetalhetransmissaoautenticacao_sequencial_seq"></sequence>
+    </field>
+    <field name="empagemovdetalhetransmissao"
+           conteudo="int4"
+           description="Sequencial da empagemovdetalhetransmissao"
+           inivalue="0"
+           label="empagemovdetalhetransmissao"
+           size="10"
+           null="f"
+           uppercase="f"
+           autocompl="f"
+           aceitatipo="1"
+           tipoobj="text"
+           labelrel="empagemovdetalhetransmissao"
+           reference=""
+           ispk="f"
+           hassequence="f">
+    </field>
+    <field name="numautenticacao"
+           label="NumAutenticacao"
+           labelrel="NumAutenticacao"
+           description="Número de Autenticação"
+           conteudo="varchar"
+           inivalue=""
+           size="16"
+           null="f"
+           uppercase="f"
+           autocompl="f"
+           aceitatipo="1"
+           tipoobj="text"
+           reference=""
+           ispk="f"
+           hassequence="f">
+    </field>
+  </fields>
+  <primarykey>
+    <fieldpk name="sequencial"></fieldpk>
+  </primarykey>
+</table>

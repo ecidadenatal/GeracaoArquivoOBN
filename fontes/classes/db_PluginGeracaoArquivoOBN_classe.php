@@ -71,6 +71,7 @@ class cl_PluginGeracaoArquivoOBN {
 	}
 	
 	function getSqlDadosMovimentacao($sCodigoGeracao, $iInstituicao, $iAno, $iCodigoMovimento = null) {
+		$regerar = "sim";
 		$sWhere = "1=1";
 		$sInner = "left";
 		/*$sWhereArquivo = " e80_instit      = {$iInstituicao}   ";
@@ -87,6 +88,7 @@ class cl_PluginGeracaoArquivoOBN {
 		
 		if (! empty ( $iCodigoMovimento )) {
 			$sWhere .= "and {$sWhereMovimento}";
+			$regerar = "nao";
 		}
 		
 		$sqlOrdem = "select distinct
@@ -157,7 +159,8 @@ class cl_PluginGeracaoArquivoOBN {
                                                                and e75_ativo is true
                                 where e76_codmov = e81_codmov) as processado,
 		        null::integer as slipvinculo,
-			conplanoreduz.c61_reduz as saltes_pag
+			empagetipo.e83_conta as saltes_pag,
+			'{$regerar}' as regerar
                    from empagemov
             	          {$sInner} join empageconfgera               on e90_codmov = e81_codmov
             	          {$sInner} join empagegera                   on e90_codgera=e87_codgera
@@ -169,7 +172,7 @@ class cl_PluginGeracaoArquivoOBN {
             	          {$sInner} join empagetipo                   on e85_codtipo = e83_codtipo
               	        {$sInner} join empord                       on empord.e82_codmov         = empagemov.e81_codmov
             	          left      join empageslip                  on e81_codmov = e89_codmov
-            	          left      join conplanoreduz               on e83_conta = c61_reduz and c61_anousu = " . $iAno . "
+            	          left      join conplanoreduz               on c61_codcon in (select c61_codcon from conplanoreduz where c61_reduz = e83_conta) and c61_anousu = " . $iAno . "
               	        left      join conplanoconta               on c63_codcon = c61_codcon and c63_anousu = c61_anousu
               	        left      join slip                        on slip.k17_codigo = e89_codigo
               	        left      join slipnum                     on slipnum.k17_codigo = slip.k17_codigo
@@ -317,7 +320,8 @@ class cl_PluginGeracaoArquivoOBN {
 		      --sliptipooperacaovinculo.k153_slipoperacaotipo as slipvinculo
                       (case when ar.slip is null then sliptipooperacaovinculo.k153_slipoperacaotipo else 1 end) as slipvinculo,
 		      --13 as slipvinculo,
-		      conplanoreduz.c61_reduz as saltes_pag
+		      conplanoreduz.c61_reduz as saltes_pag,
+		      '{$regerar}' as regerar
                   from empagemov
 	                    {$sInner} join empageconfgera    on e90_codmov         = e81_codmov
 	                    {$sInner} join empagegera        on e90_codgera        = e87_codgera
@@ -474,7 +478,7 @@ class cl_PluginGeracaoArquivoOBN {
 		$sql .= "      inner join empage                   on  empage.e80_codage               = empagemov.e81_codage            ";
 		$sql .= "      inner join empagepag                on  empagepag.e85_codmov            = empagemov.e81_codmov            ";
 		$sql .= "      inner join empagetipo               on  empagetipo.e83_codtipo          = empagepag.e85_codtipo           ";
-		$sql .= "      inner join conplanoreduz            on  conplanoreduz.c61_reduz         = empagetipo.e83_conta            ";
+		$sql .= "      inner join conplanoreduz            on  conplanoreduz.c61_codcon       in (select c61_codcon from conplanoreduz where c61_reduz = empagetipo.e83_conta)";
 		$sql .= "                                         and  conplanoreduz.c61_anousu        = " . db_getsession ( "DB_anousu" );
 		$sql .= "                                         and  conplanoreduz.c61_instit        = " . db_getsession ( "DB_instit" );
 		$sql .= "      inner join conplanoconta            on conplanoconta.c63_codcon         = conplanoreduz.c61_codcon ";

@@ -1,64 +1,71 @@
 <?php
+$head1 = "AUTORIZAÇÕES BANCÁRIAS";
 
-$HEAD3 = "AUTORIZAÇÕES BANCÁRIAS";
-$HEAD5 = @$e87_codgera;
-$HEAD6 = @$e87_descgera;
-$e87_codgera = @$e87_codgera;
+$rsEmpageGera = $clempagegera->sql_record($clempagegera->sql_query_file($e87_codgera));
+$oDadosGeracao = db_utils::fieldsMemory($rsEmpageGera,0);
+$head3 = "Relação Externa :  ".number_format($oDadosGeracao->e87_codgera,0,',','.');
+$head3 .= " / ".substr($oDadosGeracao->e87_dataproc, 0,4);
+$head3 .= " - {$oDadosGeracao->e87_descgera}";
+
 $xtipo = '';
 
 $pdf = new PDF();
 $pdf->Open();
 $pdf->AliasNbPages();
 $pdf->setfillcolor(235);
+
 $total = 0;
 $alt = 4;
 
-$head1 = $HEAD3;
-$head3 = "Relação Externa :  ".number_format($HEAD5,0,',','.')." / ".db_getsession("DB_anousu").' - '.$HEAD6 ;
+$sql_unid_gestora_emp = "select distinct 
+                                o41_orgao||lpad(o41_unidade,2,'0') as unid_gestora, 
+                                o41_orgao as orgao, 
+                                o41_unidade as unidade, 
+                                o41_descr as descr_unidade,
+                                extract(year from e87_data) as exercicio_geracao
+                           from empageconfgera 
+                                inner join empagegera on e90_codgera = e87_codgera 
+                                inner join empagemov on e81_codmov = e90_codmov 
+                                inner join empempenho on e81_numemp = e60_numemp 
+	                            inner join empagepag on e81_codmov = e85_codmov
+                                inner join empagetipo on e85_codtipo = e83_codtipo
+	                            inner join empord on e81_codmov = e82_codmov
+                                inner join orcdotacao on e60_coddot = o58_coddot and o58_anousu = e60_anousu 
+                                inner join orcunidade on o58_orgao = o41_orgao and o58_unidade = o41_unidade and o58_anousu = o41_anousu 
+  	                            inner join db_permemp on o41_orgao = db20_orgao
+  	                            inner join db_usupermemp on db20_codperm = db21_codperm
+                          where empagegera.e87_codgera in ('$e87_codgera') and db21_id_usuario =".db_getsession("DB_id_usuario");
 
-$sql_unid_gestora_emp = "
-select distinct o41_orgao||lpad(o41_unidade,2,'0') as unid_gestora, o41_orgao as orgao, o41_unidade as unidade, o41_descr as descr_unidade from empageconfgera 
-        inner join empagegera on e90_codgera = e87_codgera 
-        inner join empagemov on e81_codmov = e90_codmov 
-        inner join empempenho on e81_numemp = e60_numemp 
-	inner join empagepag on e81_codmov = e85_codmov
-        inner join empagetipo on e85_codtipo = e83_codtipo
-	inner join empord on e81_codmov = e82_codmov
-        inner join orcdotacao on e60_coddot = o58_coddot and o58_anousu = e60_anousu 
-        inner join orcunidade on o58_orgao = o41_orgao and o58_unidade = o41_unidade and o58_anousu = o41_anousu 
-	inner join db_permemp on o41_orgao = db20_orgao
-	inner join db_usupermemp on db20_codperm = db21_codperm
-where empagegera.e87_codgera in ('$e87_codgera') and db21_id_usuario =".db_getsession("DB_id_usuario")."
-		";
-
-$sql_unid_gestora_slip = "
-select distinct o41_orgao||lpad(o41_unidade,2,'0') as unid_gestora, o41_orgao as orgao, o41_unidade as unidade, o41_descr as descr_unidade from empageconfgera
-       inner join empagegera               on e90_codgera        = e87_codgera
-       inner join empagemov                on e90_codmov         = e81_codmov
-       inner join empagemovtipotransmissao on e25_empagemov = e81_codmov
-       inner join empage                   on empage.e80_codage  = empagemov.e81_codage
-       inner join empagepag                on e81_codmov         = e85_codmov
-       inner join empagetipo               on e85_codtipo        = e83_codtipo
-       inner join empageslip               on e81_codmov         = e89_codmov
-       inner join slip                     on slip.k17_codigo    = e89_codigo
-       inner join slipnum                  on slipnum.k17_codigo = slip.k17_codigo
-       inner join conplanoreduz            on c61_reduz          = e83_conta
-                                          and c61_anousu         = extract(year from k17_data) 
-       inner join conplanoconta            on c63_codcon         = c61_codcon
-                                          and c63_anousu         = c61_anousu
-        inner join plugins.slipdepartamento dep on slip = slip.k17_codigo
-        inner join db_depart on dep.departamento = db_depart.coddepto
-        inner join db_depusu on db_depart.coddepto = db_depusu.coddepto and db_depusu.id_usuario = ".db_getsession("DB_id_usuario")."
-        inner join db_departorg on db_depart.coddepto = db01_coddepto and db01_anousu = c61_anousu 
-        inner join orcunidade on db01_orgao = o41_orgao and db01_unidade = o41_unidade and db01_anousu = o41_anousu
-where empagegera.e87_codgera in ('$e87_codgera');
-		";
-
+$sql_unid_gestora_slip = "select distinct o41_orgao||lpad(o41_unidade,2,'0') as unid_gestora, 
+	                             o41_orgao as orgao, 
+	                             o41_unidade as unidade, 
+	                             o41_descr as descr_unidade,
+		                         extract(year from e87_data) as exercicio_geracao
+                            from empageconfgera
+                                 inner join empagegera               on e90_codgera        = e87_codgera
+                                 inner join empagemov                on e90_codmov         = e81_codmov
+                                 inner join empagemovtipotransmissao on e25_empagemov = e81_codmov
+                                 inner join empage                   on empage.e80_codage  = empagemov.e81_codage
+                                 inner join empagepag                on e81_codmov         = e85_codmov
+                                 inner join empagetipo               on e85_codtipo        = e83_codtipo
+                                 inner join empageslip               on e81_codmov         = e89_codmov
+                                 inner join slip                     on slip.k17_codigo    = e89_codigo
+                                 inner join slipnum                  on slipnum.k17_codigo = slip.k17_codigo
+                                 inner join conplanoreduz            on c61_codcon in (select c61_codcon from conplanoreduz where c61_reduz = e83_conta)
+                                                                    and c61_anousu         = extract(year from k17_data) 
+                                 inner join conplanoconta            on c63_codcon         = c61_codcon
+                                                                    and c63_anousu         = c61_anousu
+                                 inner join plugins.slipdepartamento dep on slip = slip.k17_codigo
+                                 inner join db_depart on dep.departamento = db_depart.coddepto
+                                 inner join db_depusu on db_depart.coddepto = db_depusu.coddepto and db_depusu.id_usuario = ".db_getsession("DB_id_usuario")."
+                                 inner join db_departorg on db_depart.coddepto = db01_coddepto and db01_anousu = c61_anousu 
+                                 inner join orcunidade on db01_orgao = o41_orgao and db01_unidade = o41_unidade and db01_anousu = o41_anousu
+                           where empagegera.e87_codgera in ('$e87_codgera')";
 $sql_unid_gestora = $sql_unid_gestora_emp." union ".$sql_unid_gestora_slip;
 $rs_unid_gestora = db_query($sql_unid_gestora);
 
-for($x =0 ; $x < pg_numrows($rs_unid_gestora);$x++) {
-
+for ($x =0 ; $x < pg_numrows($rs_unid_gestora);$x++) {
+	
 db_fieldsmemory($rs_unid_gestora,$x);
 
 $db_where ='';
@@ -166,7 +173,7 @@ $sqlOrdem = "
       left      join (select distinct on (empagemov) *
                                         from plugins.empagemovpagamento  )
                                     as empagemovpagamento on empagemovpagamento.empagemov = empagemov.e81_codmov
-	  inner join conplanoreduz on e83_conta = c61_reduz and c61_anousu = ".db_getsession("DB_anousu")."
+	  inner join conplanoreduz on c61_codcon in (select c61_codcon from conplanoreduz where c61_reduz = e83_conta) and c61_anousu = ".db_getsession("DB_anousu")."
 	  inner join conplanoconta on c63_codcon = c61_codcon and c63_anousu = c61_anousu
 	  left join slip on slip.k17_codigo = e89_codigo
 	  left join slipnum on slipnum.k17_codigo = slip.k17_codigo

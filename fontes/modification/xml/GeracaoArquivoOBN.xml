@@ -491,6 +491,8 @@ $aWidth   = array( 20, 20, 20, 25, 30, 160 );
       <add>
         <![CDATA[$1
   /* Inicio GeracaoArquivoOBN */      
+  const OPERACAO_GPS_DARF_CONTAUNICA = 19;  
+  const OPERACAO_GPS_DARF = 39;  
   const OPERACAO_SLIP_CONTAUNICA    = 17;
   const OPERACAO_COM_FATURA    = 33;
   const OPERACAO_SLIP_OUTRASCONTAS  = 37;
@@ -507,8 +509,12 @@ $aWidth   = array( 20, 20, 20, 25, 30, 160 );
     $sCodigoBarras  = $oDadosMovimentacao->getCodigoBarra();
     $iCodigoReceita = $oDadosMovimentacao->getCodReceita();
     
-    if (!empty ($sCodigoBarras) || !empty($iCodigoReceita)) {
+    if (!empty ($sCodigoBarras)) {
       return ConfiguracaoArquivoObn::OPERACAO_CODIGO_BARRAS;
+    }
+
+    if (!empty($iCodigoReceita)) {
+      return ConfiguracaoArquivoObn::OPERACAO_GPS_DARF;
     }
 
     // Se o Movimento estiver marcado como fatura (Sim = t) então tipo = 33
@@ -1515,7 +1521,7 @@ $1]]>
       $rsSaltesDepart   = $oDaoSaltesDepart->sql_record($oDaoSaltesDepart->sql_query(null, "count(*) as vinculoDepart", null, "depart = ".db_getsession('DB_coddepto')." and saltes = {$oStdMovimento->saltes_pag}"));
       $iSaltesDepart    = db_utils::fieldsMemory($rsSaltesDepart, 0)->vinculodepart;
 
-      if($iSaltesDepart == 0) {
+      if($iSaltesDepart == 0 && $oStdMovimento->regerar == 'nao') {
         throw new BusinessException("A conta {$oStdMovimento->saltes_pag} configurada {$sMsgErro} não está vinculada ao departamento logado. Verifique.");
       }
       $1]]>
