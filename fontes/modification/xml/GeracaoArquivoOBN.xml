@@ -2122,6 +2122,41 @@ function js_recarregaIframeMovimentos() {
   <file path='forms/db_frmmanutencaoagenda.php'>
   
     <operation>
+      <search regex="true"><![CDATA[(aLinha\[8.*js_createComboForma.*;)]]></search>
+      <add>
+        <![CDATA[aLinha[8]   = js_createComboForma(e97_codforma,e81_codmov, lDisabled, o58_localizadorgastos);]]>
+      </add>
+    </operation>
+  
+    <operation>
+      <search regex="true"><![CDATA[(func.*js_createComboForma.*.*\{)]]></search>
+      <add>
+        <![CDATA[function js_createComboForma(iTipoForma, iCodMov, lDisabled, iAnexo) {]]>
+      </add>
+    </operation>
+
+    <operation>
+      <search regex="true"><![CDATA[(var.*sCombo.*sDisabled.*;)]]></search>
+      <add>
+        <![CDATA[if(iAnexo == 2) {
+      var sCombo  = "<select style='width:100%' class='formapag' id='forma"+iCodMov+"' disabled onchange='js_formaPagamentoAlterada(this.value)' >";
+      sCombo     += "  <option selected value='4'>DEB</option>";
+      sCombo     += "</select>";
+    } else {
+      var sCombo  = "<select style='width:100%' class='formapag' id='forma"+iCodMov+"' "+sDisabled+" onchange='js_formaPagamentoAlterada(this.value)' >";]]>
+      </add>
+    </operation>
+
+    <operation>
+      <search regex="true"><![CDATA[(iTipoForma.*DEB.*\n.*sCombo.*\/select.*;)]]></search>
+      <add>
+        <![CDATA[iTipoForma == 4?" selected ":" ")+" value='4'>DEB</option>";
+    sCombo     += "</select>";
+    }]]>
+      </add>
+    </operation>
+
+    <operation>
       <search regex="true"><![CDATA[(onclick=.*js_visualizarRelatorio\(\).*>)]]></search>
       <add>
         <![CDATA[$1
@@ -2180,7 +2215,8 @@ function js_recarregaIframeMovimentos() {
     </operation>
   </file>
   
-    <file path='forms/db_frmmanutencaoagendaslip.php'>
+  <file path='forms/db_frmmanutencaoagendaslip.php'>
+
     <operation>
       <search regex="true"><![CDATA[(var\s*sCombo\s*=\s*"<select.*formapag.*)(>";)]]></search>
       <add>
@@ -2210,6 +2246,7 @@ function js_recarregaIframeMovimentos() {
         <![CDATA[location.href="emp4_empageconfgera001.php?geraUnidade"]]>
       </add>
     </operation>
+
   </file>
   
   <file path='cai2_retornobanco002.php'>
