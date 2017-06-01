@@ -2185,6 +2185,14 @@ function js_recarregaIframeMovimentos() {
     </operation>
 
     <operation>
+      <search regex="true"><![CDATA[(if.*\(lVerificaSaldo\).*\{)]]></search>
+      <add>
+        <![CDATA[js_formaPagamentoAlterada(oRow.aCells[9].getValue());
+        if (lVerificaSaldo) {]]>
+      </add>
+    </operation>
+
+    <operation>
       <search regex="true"><![CDATA[(function\s*js_createComboContasForne)]]></search>
       <add>
         <![CDATA[
@@ -2193,7 +2201,8 @@ function js_recarregaIframeMovimentos() {
     if((formaPagamento == 1 || formaPagamento == 4) && $('efetuarpagamento').checked == false){
       document.getElementById("efetuarpagamento").click(); 
       $('autenticar').checked = false;
-    }  
+      $('autenticar').disabled = true;
+    } 
   }
   
   $1]]>
