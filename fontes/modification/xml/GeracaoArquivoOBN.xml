@@ -1418,13 +1418,25 @@ $1]]>
     </operation>
 
     <operation>
-      <search regex="true" flag="U" limit="1"><![CDATA[(\$oStdLinhaTipoQuatro->cb_valor_nominal\s*=.*)((.*\n*)*)cb_valor_mora_juros((.*\n*)*)STR_PAD_LEFT\);]]></search>
+      <search regex="true"><![CDATA[(\$oStdLinhaTipoQuatro->cb_valor_nominal\s*=.*\$oDadosLinha->getValorNominal\(\).*\);)]]></search>
       <add>
-        <![CDATA[$oStdLinhaTipoQuatro->cb_valor_nominal                 = str_pad(str_replace(".", "", $oDadosDetalheTransmissao->e74_valornominal), 17, "0", STR_PAD_LEFT);
-    $oStdLinhaTipoQuatro->cb_valor_desconto_abatimento     = str_pad(str_replace(".", "",  $oDadosDetalheTransmissao->e74_valordesconto), 17, "0", STR_PAD_LEFT);
-    $oStdLinhaTipoQuatro->cb_valor_mora_juros              = str_pad(str_replace(".", "", $oDadosDetalheTransmissao->e74_valorjuros), 17, "0", STR_PAD_LEFT);]]>
+        <![CDATA[$oStdLinhaTipoQuatro->cb_valor_nominal                 = str_pad(str_replace(".", "", $oDadosDetalheTransmissao->e74_valornominal), 17, "0", STR_PAD_LEFT);]]>
       </add>
     </operation> 
+    
+     <operation>
+      <search regex="true"><![CDATA[(\$oStdLinhaTipoQuatro->cb_valor_desconto_abatimento\s*=.*\$oDadosLinha->getValorDesconto\(\).*\);)]]></search>
+      <add>
+        <![CDATA[$oStdLinhaTipoQuatro->cb_valor_desconto_abatimento     = str_pad(str_replace(".", "",  $oDadosDetalheTransmissao->e74_valordesconto), 17, "0", STR_PAD_LEFT);]]>
+      </add>
+    </operation>
+    
+     <operation>
+      <search regex="true"><![CDATA[(\$oStdLinhaTipoQuatro->cb_valor_mora_juros\s*=.*\$oDadosLinha->getValorJuros\(\).*\);)]]></search>
+      <add>
+        <![CDATA[$oStdLinhaTipoQuatro->cb_valor_mora_juros              = str_pad(str_replace(".", "", $oDadosDetalheTransmissao->e74_valorjuros), 17, "0", STR_PAD_LEFT);]]>
+      </add>
+    </operation>
     
     <operation>
       <search regex="true"><![CDATA[(\(\s*\$oDadosLinha->getTipoFatura\(\)\s*==\s*2\s*\))]]></search>
@@ -1527,6 +1539,13 @@ $1]]>
       $1]]>
       </add>
     </operation>
+    <operation>
+      <search><![CDATA[10B001]]></search>
+      <add>
+        <![CDATA[10E001]]>
+      </add>
+    </operation>
+    
   </file>
   
   <file path='emp4_empageconfgera001_ordem.php'>
@@ -1601,9 +1620,12 @@ $1]]>
     </operation>
     
     <operation>
-      <search regex="true" limit="1"><![CDATA[\$sChecked\s*=\s*"\s*checked\s*"\s*;]]></search>
+      <search regex="true"><![CDATA[(\}\n*\s*\$sDisabled\s*=\s*\"\";\n*.*\$sChecked\s*=\s*"\s*checked\s*"\s*;)]]></search>
       <add>
-        <![CDATA[$sChecked  = "  ";]]>
+        <![CDATA[}
+                 $sDisabled = "";
+                 $sChecked  = "  ";
+        ]]>
       </add>
     </operation>
     
@@ -1929,7 +1951,7 @@ $1]]>
         </td>
         <td>
           <?php
-            db_select("filtroUnidade", $afiltroUnidade, true, 1, "onchange=\"js_recarregaIframeMovimentos();\"");
+            db_select("filtroUnidade", @$afiltroUnidade, true, 1, "onchange=\"js_recarregaIframeMovimentos();\"");
           ?>
         </td>
       </tr>
