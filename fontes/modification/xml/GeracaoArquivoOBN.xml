@@ -2144,23 +2144,37 @@ function js_recarregaIframeMovimentos() {
   <file path='forms/db_frmmanutencaoagenda.php'>
   
     <operation>
+      <search regex="true"><![CDATA[(require.*db_stdClass.php.*;)]]></search>
+      <add>
+        <![CDATA[require_once(modification("std/db_stdClass.php"));
+$oPlugin = new Plugin(null, 'GeracaoArquivoOBN');
+$aConfig = PluginService::getPluginConfig($oPlugin);
+$aInstituicoes = array_map(function($sValor) {
+
+      return trim($sValor);
+    }, explode(',', $aConfig['InstituicaoValidaAnexo2']));
+]]>
+      </add>
+    </operation>
+
+    <operation>
       <search regex="true"><![CDATA[(aLinha\[8.*js_createComboForma.*;)]]></search>
       <add>
-        <![CDATA[aLinha[8]   = js_createComboForma(e97_codforma,e81_codmov, lDisabled, o58_localizadorgastos);]]>
+        <![CDATA[aLinha[8]   = js_createComboForma(e97_codforma,e81_codmov, lDisabled, o58_localizadorgastos, <?= in_array(db_getsession('DB_instit'), $aInstituicoes) ? "true" : "false" ?>);]]>
       </add>
     </operation>
   
     <operation>
       <search regex="true"><![CDATA[(func.*js_createComboForma.*.*\{)]]></search>
       <add>
-        <![CDATA[function js_createComboForma(iTipoForma, iCodMov, lDisabled, iAnexo) {]]>
+        <![CDATA[function js_createComboForma(iTipoForma, iCodMov, lDisabled, iAnexo, lValidaAnexo) {]]>
       </add>
     </operation>
 
     <operation>
       <search regex="true"><![CDATA[(var.*sCombo.*sDisabled.*;)]]></search>
       <add>
-        <![CDATA[if(iAnexo == 2) {
+        <![CDATA[if(iAnexo == 2 && lValidaAnexo) {
       var sCombo  = "<select style='width:100%' class='formapag' id='forma"+iCodMov+"' disabled onchange='js_formaPagamentoAlterada(this.value)' >";
       sCombo     += "  <option selected value='4'>DEB</option>";
       sCombo     += "</select>";
