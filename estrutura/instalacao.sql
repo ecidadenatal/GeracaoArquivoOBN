@@ -60,6 +60,8 @@ create table plugins.empagemovpagamentoautenticacao (sequencial integer,
                                       							numautenticacao varchar(16));
 create sequence plugins.empagemovpagamentoautenticacao_sequencial_seq; 
 
+create table plugins.saltesfinalidadepagamento (saltes integer);
+
 
 --insert into configuracoes.db_itensmenu (id_item   ,
 --                          descricao ,

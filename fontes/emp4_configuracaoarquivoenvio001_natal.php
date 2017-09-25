@@ -1255,9 +1255,9 @@ function js_viewConfiguracao (iCodMov) {
       sConteudoDetalhes += "             <option value='0'>Selecione</option>           ";
       sConteudoDetalhes += "             <option value='1'>Fatura</option>           ";
       sConteudoDetalhes += "             <option value='2'>Convênio</option>         ";
-      //sConteudoDetalhes += "             <option value='3'>GPS</option>         ";
-      //sConteudoDetalhes += "             <option value='4'>DARF</option>         ";
-      //sConteudoDetalhes += "             <option value='5'>DARF Simples</option>         ";
+      sConteudoDetalhes += "             <option value='3'>GPS</option>         ";
+      sConteudoDetalhes += "             <option value='4'>DARF</option>         ";
+      sConteudoDetalhes += "             <option value='5'>DARF Simples</option>         ";
       sConteudoDetalhes += "           </select>";
       sConteudoDetalhes += "        </td>  ";
       sConteudoDetalhes += "      </tr>    ";

@@ -32,6 +32,8 @@ drop sequence plugins.empagemovdetalhetransmissaoautenticacao_sequencial_seq;
 drop table plugins.empagemovpagamentoautenticacao;
 drop sequence plugins.empagemovpagamentoautenticacao_sequencial_seq; 
 
+drop table plugins.conhistgeracaoobn;
+
 
 --Menus
 --delete from configuracoes.db_menu   

@@ -25,27 +25,27 @@
  *                                licenca/licenca_pt.txt 
  */
 
-require_once("libs/db_stdlib.php");
-require_once("libs/db_conecta_plugin.php");
-require_once("libs/db_sessoes.php");
-require_once("libs/db_usuariosonline.php");
-require_once("classes/db_conhistdoc_classe.php");
-require_once("dbforms/db_funcoes.php");
-require_once("libs/db_app.utils.php");
+require_once(modification("libs/db_stdlib.php"));
+require_once(modification("libs/db_conecta_plugin.php"));
+require_once(modification("libs/db_sessoes.php"));
+require_once(modification("libs/db_usuariosonline.php"));
+require_once(modification("classes/db_conhistdoc_classe.php"));
+require_once(modification("dbforms/db_funcoes.php"));
+require_once(modification("libs/db_app.utils.php"));
 
-require_once("classes/db_empage_classe.php");
-require_once("classes/db_empagetipo_classe.php");
-require_once("classes/db_empagemov_classe.php");
-require_once("classes/db_empord_classe.php");
-require_once("classes/db_empagepag_classe.php");
-require_once("classes/db_empageslip_classe.php");
-require_once("classes/db_empagemovforma_classe.php");
-require_once("classes/db_empagegera_classe.php");
-require_once("classes/db_empageconf_classe.php");
-require_once("classes/db_empageconfgera_classe.php");
-require_once("classes/db_conplanoconta_classe.php");
-require_once("classes/db_empagemod_classe.php");
-require_once("classes/db_db_bancos_classe.php");
+require_once(modification("classes/db_empage_classe.php"));
+require_once(modification("classes/db_empagetipo_classe.php"));
+require_once(modification("classes/db_empagemov_classe.php"));
+require_once(modification("classes/db_empord_classe.php"));
+require_once(modification("classes/db_empagepag_classe.php"));
+require_once(modification("classes/db_empageslip_classe.php"));
+require_once(modification("classes/db_empagemovforma_classe.php"));
+require_once(modification("classes/db_empagegera_classe.php"));
+require_once(modification("classes/db_empageconf_classe.php"));
+require_once(modification("classes/db_empageconfgera_classe.php"));
+require_once(modification("classes/db_conplanoconta_classe.php"));
+require_once(modification("classes/db_empagemod_classe.php"));
+require_once(modification("classes/db_db_bancos_classe.php"));
 
 db_postmemory($HTTP_POST_VARS);
 $clempagegera     = new cl_empagegera;
@@ -206,10 +206,10 @@ function js_limpaCampos(){
 //======================================pesquisa arquivo
 function js_pesquisa_gera(mostra){
 	  if(mostra==true){
-	    js_OpenJanelaIframe('top.corpo','db_iframe_empagegera','func_empagegera.php?gerado=0&funcao_js=parent.js_mostragera1|e87_codgera|e87_descgera','Pesquisa de Arquivos Não Gerados',true);
+	    js_OpenJanelaIframe('CurrentWindow.corpo','db_iframe_empagegera','func_empagegera.php?gerado=0&funcao_js=parent.js_mostragera1|e87_codgera|e87_descgera','Pesquisa de Arquivos Não Gerados',true);
 	  }else{
 	     if(document.form1.e87_codgera.value != ''){ 
-	        js_OpenJanelaIframe('top.corpo','db_iframe_empagegera','func_empagegera.php?pesquisa_chave='+document.form1.e87_codgera.value+'&gerado=0&funcao_js=parent.js_mostragera','Pesquisa',false);
+	        js_OpenJanelaIframe('CurrentWindow.corpo','db_iframe_empagegera','func_empagegera.php?pesquisa_chave='+document.form1.e87_codgera.value+'&gerado=0&funcao_js=parent.js_mostragera','Pesquisa',false);
 	     }else{
 	       document.form1.e87_descgera.value = ''; 
 	     }

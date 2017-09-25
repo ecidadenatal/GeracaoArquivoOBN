@@ -127,6 +127,7 @@ if (isset($lCancelado) && $lCancelado == '0') {
       <add>
         <![CDATA[/* [Inicio plugin GeracaoArquivoOBN  - correcao codigo movimento] */
           $1$oArquivo->numob);
+          $oRegistro->codigo_geracao   = str_replace(".", "",substr($oArquivo->nummov, 0, -5));
           /* [Fim plugin GeracaoArquivoOBN  - correcao codigo movimento] */]]>
       </add>
     </operation>
@@ -1122,7 +1123,7 @@ $1]]>
     <operation>
       <search regex="true"><![CDATA[\$oStdLinhaTipoDois->finalidade_pagamento\s*=.*STR_PAD_LEFT\)\s*;\n*\s*\$oStdLinhaTipoDois->prefixo_conta_convenio.*\);]]></search>
       <add>
-        <![CDATA[$oStdLinhaTipoDois->finalidade_pagamento        = str_repeat(" ", 3);
+        <![CDATA[$oStdLinhaTipoDois->finalidade_pagamento        = str_pad($sCodigoFinalidadePagamento, 3, "0", STR_PAD_LEFT);
     $oStdLinhaTipoDois->prefixo_conta_convenio        = str_pad($sContaDigitoPagadora, 10, " ", STR_PAD_RIGHT);]]>
       </add>
     </operation>
@@ -1218,7 +1219,8 @@ $1]]>
     $oStdLinhaTipoTres                                  = new stdClass();
     $oStdLinhaTipoTres->numero_sequencial_movimento     = str_pad($this->iSequencialRegistro, 7, "0", STR_PAD_LEFT);
     $oStdLinhaTipoTres->codigo_operacao                 = $iTipoOperacao;
-    $oStdLinhaTipoTres->campo_branco_quatro         = str_repeat(" ", 7);
+    $oStdLinhaTipoTres->campo_branco_quatro         = str_repeat(" ", 4);
+    $oStdLinhaTipoTres->finalidade_pagamento           = str_pad($sCodigoFinalidadePagamento, 3, "0", STR_PAD_LEFT);
     $oStdLinhaTipoTres->numero_conta_convenio       = str_pad($sContaDigitoPagadora, 10, " ", STR_PAD_RIGHT);
     $oStdLinhaTipoTres->prefixo_agencia         = $sAgenciaDigitoPagadora;
     $oStdLinhaTipoTres->codigo_favorecido           = $sCPFCNPJ;
@@ -1259,6 +1261,12 @@ $1]]>
     list($iAno, $iMes, $iDia) = explode("-", $this->dtGeracaoArquivo);
     list($iAnoPagamento, $iMesPagamento, $iDiaPagamento) = explode("-", $oDadosLinha->getDataVencimento());
 
+    $sCodigoFinalidadePagamento = $oDadosLinha->getFinalidadePagamentoFundeb();
+    if (!empty($sCodigoFinalidadePagamento)) {
+    
+    	$oFinalidadePagamento       = new FinalidadePagamentoFundeb($oDadosLinha->getFinalidadePagamentoFundeb());
+    	$sCodigoFinalidadePagamento = $oFinalidadePagamento->getCodigo();
+    }
 
     $sCPFCNPJ = $oDadosLinha->getCnpj();
     if ($iTipoFavorecido == ConfiguracaoArquivoObn::TIPO_CPF) {
@@ -1286,7 +1294,8 @@ $1]]>
     $oStdLinhaTipoCinco->campo_branco_tres                = str_repeat(" ", 3);
     $oStdLinhaTipoCinco->valor_liquido                    = str_pad(str_replace(".", "", $oDadosLinha->getValor()), 17, "0", STR_PAD_LEFT);
     $oStdLinhaTipoCinco->data_pagamento                   = "{$iDiaPagamento}{$iMesPagamento}{$iAnoPagamento}";
-    $oStdLinhaTipoCinco->campo_branco_quatro              = str_repeat(" ", 7);
+    $oStdLinhaTipoCinco->campo_branco_quatro              = str_repeat(" ", 4);
+    $oStdLinhaTipoCinco->finalidade_pagamento              = str_pad($sCodigoFinalidadePagamento, 3, "0", STR_PAD_LEFT);
     
     $oStdLinhaTipoCinco->tipo_pagamento                   = $oDadosPagamento->tipopagamento;
     
@@ -1378,6 +1387,23 @@ $1]]>
     </operation>
     
     <operation>
+      <search regex="true"><![CDATA[(\$oStdLinhaTipoTres->campo_branco_quatro.*=.*;)]]></search>
+      <add>
+        <![CDATA[
+    $oStdLinhaTipoTres->campo_branco_quatro                      = str_repeat(" ", 4);
+    $sCodigoFinalidadePagamento = $oDadosLinha->getFinalidadePagamentoFundeb();
+    if (!empty($sCodigoFinalidadePagamento)) {
+    
+    	$oFinalidadePagamento       = new FinalidadePagamentoFundeb($oDadosLinha->getFinalidadePagamentoFundeb());
+    	$sCodigoFinalidadePagamento = $oFinalidadePagamento->getCodigo();
+    }
+    $oStdLinhaTipoTres->finalidade_pagamento           = str_pad($sCodigoFinalidadePagamento, 3, "0", STR_PAD_LEFT);
+    
+    ]]>
+      </add>
+    </operation>
+    
+    <operation>
       <search regex="true"><![CDATA[(function\s*constroiLinhaTipoQuatro\s*\(\s*MovimentoArquivoTransmissao\s*\$oDadosLinha)]]></search>
       <add>
         <![CDATA[$1, $oDadosDetalheTransmissao, $iDetalheFatura]]>
@@ -1392,9 +1418,26 @@ $1]]>
         $sUgGestao          =  "0".str_pad($oDadosLinha->getOrgao(),2,"0",STR_PAD_LEFT)."000".str_pad("1",5,"0",STR_PAD_LEFT);
     }
     $oStdLinhaTipoQuatro->codigo_instituicao               = $sUgGestao;
-    $oStdLinhaTipoQuatro->codigo_movimento                 = str_pad(number_format($oDadosLinha->getCodigoArquivoSistema(),0,',','.')."/".db_getsession("DB_anousu"), 11, "0", STR_PAD_LEFT);]]>
+    $oStdLinhaTipoQuatro->codigo_movimento                 = str_pad(number_format($oDadosLinha->getCodigoArquivoSistema(),0,',','.')."/".db_getsession("DB_anousu"), 11, "0", STR_PAD_LEFT);
+    
+    $sCodigoFinalidadePagamento = $oDadosLinha->getFinalidadePagamentoFundeb();
+    if (!empty($sCodigoFinalidadePagamento)) {
+    
+    	$oFinalidadePagamento       = new FinalidadePagamentoFundeb($oDadosLinha->getFinalidadePagamentoFundeb());
+    	$sCodigoFinalidadePagamento = $oFinalidadePagamento->getCodigo();
+    }
+    $oStdLinhaTipoQuatro->finalidade_pagamento           = str_pad($sCodigoFinalidadePagamento, 3, "0", STR_PAD_LEFT);
+    
+    ]]>
       </add>
     </operation>
+    
+    <operation>
+      <search regex="true"><![CDATA[(\$oStdLinhaTipoQuatro->campo_branco_seis.*=.*;)]]></search>
+      <add>
+        <![CDATA[$oStdLinhaTipoQuatro->campo_branco_seis            = str_repeat(" ", 4);]]>
+      </add>
+    </operation>    
     
     <operation>
       <search regex="true"><![CDATA[\$oStdLinhaTipoQuatro->campo_zero_um\s*=\s*str_repeat\(\s*"0"\s*,\s*6\);]]></search>
@@ -1700,7 +1743,8 @@ $1]]>
                                 e60_codemp,
                                 case when fatura = 't' then 2 else 1 end as comfatura,
                                 e74_codigodebarra as codigobarras,
-                                null::integer as slipvinculo
+                                null::integer as slipvinculo,
+                                codreceita
                            from empagemov
                                 inner join empagemovtipotransmissao               on e25_empagemov     = e81_codmov
                                  left join plugins.empagemovtipotransmissaofatura on empagemovtipotransmissaofatura.empagemovtipotransmissao = e25_sequencial
@@ -1743,7 +1787,8 @@ $1]]>
                                  else 1 
                                end as comfatura,
                                e74_codigodebarra as codigobarras,
-                               (case when ar.slip is null then sliptipooperacaovinculo.k153_slipoperacaotipo else 1 end) as slipvinculo
+                               (case when ar.slip is null then sliptipooperacaovinculo.k153_slipoperacaotipo else 1 end) as slipvinculo,
+                               codreceita
                           from empagemov                
                                inner join empagemovtipotransmissao               on e25_empagemov        = e81_codmov
                                 left join plugins.empagemovtipotransmissaofatura on empagemovtipotransmissaofatura.empagemovtipotransmissao = e25_sequencial 
@@ -1819,6 +1864,10 @@ $1]]>
                       $tipooperacao = 31;
                     }
                   } 
+                }
+                
+                if (!empty($oEmpAgeGera->codreceita)) {
+                  $tipooperacao = 39;
                 }
               }
               echo $tipooperacao;
@@ -2389,5 +2438,187 @@ $1]]>
       </add>
     </operation>
   </file>
+  
+  <file path='con4_planoContas.RPC.php'>
+    <operation>
+      <search regex="true"><![CDATA[(\$oRetorno->lUtilizaFundeb\s*=\s*\$lLiberaFundeb;)]]></search>
+      <add>
+        <![CDATA[
+    /*
+     * inicio Plugin GeracaoArquivoOBN
+     */
+    $oDaoSaltesFinalidadePagamento = db_utils::getDao("saltesfinalidadepagamento");
+    $oDaoSaltesFinalidadePagamento->sql_record($oDaoSaltesFinalidadePagamento->sql_query($oParam->iConta));
+    if ($oDaoSaltesFinalidadePagamento->numrows > 0) {
+      $lLiberaFundeb = true;
+    }
+    /*
+     * fimPlugin GeracaoArquivoOBN
+     */ 
+            
+    $oRetorno->lUtilizaFundeb = $lLiberaFundeb;
+]]>
+      </add>
+    </operation>
+  </file>  
+  
+  <file path='cai4_transferencia.RPC.php'>
+    <operation>
+      <search regex="true"><![CDATA[(\$iParametroFundeb\s*=\s*ParametroCaixa::getCodigoRecursoFUNDEB\(\$iInstituicaoSessao\);)]]></search>
+      <add>
+        <![CDATA[
+      /*
+       * inicio Plugin GeracaoArquivoOBN
+       */
+      if (!isset($oParam->iConta)) {
+        $iContaCredito = $oParam->k17_credito;
+      } else {
+        $iContaCredito = $oParam->iConta;
+      }
+      $lUtilizaFundeb = false;
+      $oDaoSaltesFinalidadePagamento = db_utils::getDao("saltesfinalidadepagamento");
+      $oDaoSaltesFinalidadePagamento->sql_record($oDaoSaltesFinalidadePagamento->sql_query($iContaCredito));
+      if ($oDaoSaltesFinalidadePagamento->numrows > 0) {
+        $lUtilizaFundeb = true;
+      }
+      /*
+       * fim Plugin GeracaoArquivoOBN
+       */
+
+]]>
+      </add>
+    </operation>
+    <operation>
+      <search regex="true"><![CDATA[(\$iRecursoContaCredito\s*===\s*\$iParametroFundeb)]]></search>
+      <add>
+        <![CDATA[($1 || $lUtilizaFundeb )]]>
+      </add>
+    </operation>    
+  </file>
+  
+  <file path='forms/db_frmsaltes.php'>
+    <operation>
+      <search regex="true"><![CDATA[(db_input\('k103_descrextra'.*;.*\n*.*\?>)]]></search>
+      <add>
+        <![CDATA[$1                  
+                  </td>
+                </tr>
+                <!-- inicio plugin GeracaoArquivoOBN -->
+                <tr>
+                  <td>
+                    <b>Utiliza Finalidade de Pagamento: </b>
+                  </td>
+                  <td>
+                    <? 
+                      if ($db_opcao != "1" && isset($k13_reduz)) {
+                        $finalidadepagamento = "N";
+                        if (pg_num_rows(db_query("select 1 from plugins.saltesfinalidadepagamento where saltes = {$k13_reduz}")) > 0) {
+                            $finalidadepagamento = "S";
+                        }
+                      }
+                      $aOpcoes = array("S"=>"Sim", "N"=>"Não");
+                      db_select("finalidadepagamento", $aOpcoes, true, $db_opcao);
+                    ?>
+                <!-- fim plugin GeracaoArquivoOBN -->
+                
+          ]]>
+      </add>
+    </operation>
+  </file>  
+  
+  <file path='cai1_saltes001.php'>
+    <operation>
+      <search regex="true"><![CDATA[(db_fim_transacao\(\$erro\);)]]></search>
+      <add>
+        <![CDATA[
+  /*
+   * inicio plugin GeracaoArquivoOBN
+   */
+  if (!$erro) {
+   
+     if ($finalidadepagamento == "S") {
+       $oDaoSaltesFinalidadePagamento = new cl_saltesfinalidadepagamento();
+       $oDaoSaltesFinalidadePagamento->saltes = $k13_reduz;
+       $oDaoSaltesFinalidadePagamento->incluir($k13_reduz);
+       if ( $oDaoSaltesFinalidadePagamento->erro_status == 0 ) {
+           $clsaltes->erro_status = 0;
+           $clsaltes->erro_msg    = $oDaoSaltesFinalidadePagamento->erro_msg;
+           $erro = true;
+       }
+     }
+  }   
+  /*
+   * fim plugin GeracaoArquivoOBN
+   */  
+                
+  $1
+]]>
+      </add>
+    </operation>
+  </file>  
+  
+  <file path='cai1_saltes002.php'>
+    <operation>
+      <search regex="true"><![CDATA[(db_fim_transacao\(\$sqlerro\);)]]></search>
+      <add>
+        <![CDATA[
+       /*
+        * inicio plugin GeracaoArquivoOBN
+        */
+       if (!$sqlerro) {
+        
+         $oDaoSaltesFinalidadePagamento = new cl_saltesfinalidadepagamento();
+         $oDaoSaltesFinalidadePagamento->saltes = $k13_reduz;
+         $oDaoSaltesFinalidadePagamento->excluir($k13_reduz);
+         if ( $oDaoSaltesFinalidadePagamento->erro_status == 0 ) {
+          $clsaltes->erro_status = 0;
+          $clsaltes->erro_msg    = $oDaoSaltesFinalidadePagamento->erro_msg;
+          $sqlerro = true;
+         }
+          
+         if ($finalidadepagamento == "S") {   
+          $oDaoSaltesFinalidadePagamento->incluir($k13_reduz);
+          if ( $oDaoSaltesFinalidadePagamento->erro_status == 0 ) {
+              $clsaltes->erro_status = 0;
+              $clsaltes->erro_msg    = $oDaoSaltesFinalidadePagamento->erro_msg;
+              $sqlerro = true;
+          }
+         }
+         
+       }
+       /*
+        * fim plugin GeracaoArquivoOBN
+        */  
+                
+  $1
+]]>
+      </add>
+    </operation>
+  </file>         
+  
+  <file path='cai1_saltes003.php'>
+    <operation>
+      <search regex="true"><![CDATA[(\$clsaltes->excluir\(\$k13_reduz\);)]]></search>
+      <add>
+        <![CDATA[$1
+        
+         /*
+          * inicio plugin GeracaoArquivoOBN
+          */
+         $oDaoSaltesFinalidadePagamento = new cl_saltesfinalidadepagamento();
+         $oDaoSaltesFinalidadePagamento->saltes = $k13_reduz;
+         $oDaoSaltesFinalidadePagamento->excluir($k13_reduz);
+         if ( $oDaoSaltesFinalidadePagamento->erro_status == 0 ) {
+            $clsaltes->erro_status = 0;
+            $clsaltes->erro_msg    = $oDaoSaltesFinalidadePagamento->erro_msg;
+            $erro = true;
+         }
+         /*
+          * fim plugin GeracaoArquivoOBN
+          */
+]]>
+      </add>
+    </operation>
+  </file>     
   
 </modification>

@@ -1,0 +1,24 @@
+<?xml version="1.0" standalone="yes" ?>
+<table name="plugins.saltesfinalidadepagamento" description="Contas que exigem finalidade de pagamento" prefix="" label="saltesfinalidadepagamento" type="0">
+  <fields>
+    <field name="saltes"
+           conteudo="int4"
+           description="Saltes"
+           inivalue="0"
+           label="Saltes"
+           size="10"
+           null="f"
+           uppercase="f"
+           autocompl="f"
+           aceitatipo="1"
+           tipoobj="text"
+           labelrel="Saltes"
+           reference=""
+           ispk="t"
+           hassequence="f">
+    </field>  
+  </fields>
+  <primarykey>
+    <fieldpk name="saltes"></fieldpk>
+  </primarykey>
+</table>
