@@ -157,17 +157,18 @@ if (isset($lCancelado) && $lCancelado == '0') {
           /* Inicio GeracaoArquivoOBN */
           $oRegistro = new stdClass();
           
-          $oRegistro->codigo_movimento = trim((int) $oArquivo->codob);
-          $oRegistro->numero_lote      = "00";
-          $oRegistro->mov_lote         = "0000"; 
+          $oRegistro->codigo_movimento     = trim((int) $oArquivo->codob);
+          $oRegistro->numero_lote          = "00";
+          $oRegistro->mov_lote             = "0000"; 
           $oRegistro->codigo_barras        = $oArquivo->codigobarra;
           $oRegistro->numero_autenticacao  = $oArquivo->numeroautenticacao;
           $oRegistro->retorno_banco        = $oArquivo->codigoretornooperacao;
           $oRegistro->codigo_retorno       = $this->getCodigoErro( $oArquivo->codigoretornooperacao );
-          $oRegistro->valor_efetivado  = $oArquivo->valorliqui;
-          $oRegistro->data_efetivacao  = "null";
+          $oRegistro->observacao           = $oArquivo->observacaoob;
+          $oRegistro->valor_efetivado      = $oArquivo->valorliqui;
+          $oRegistro->data_efetivacao      = "null";
 
-          $oDadosRetorno->registros[] = $oRegistro;
+          $oDadosRetorno->registros[]      = $oRegistro;
         
         break;
 
@@ -175,14 +176,15 @@ if (isset($lCancelado) && $lCancelado == '0') {
 
           $oRegistro = new stdClass();
 
-          $oRegistro->codigo_movimento = trim((int) $oArquivo->codigo_ob);
-          $oRegistro->numero_lote      = "00";
-          $oRegistro->mov_lote         = "0000"; 
+          $oRegistro->codigo_movimento     = trim((int) $oArquivo->codigo_ob);
+          $oRegistro->numero_lote          = "00";
+          $oRegistro->mov_lote             = "0000"; 
           $oRegistro->codigo_receita       = $oArquivo->cod_rec_tributo;
           $oRegistro->numero_autenticacao  = $oArquivo->numero_autenticacao;
           $oRegistro->retorno_banco        = $oArquivo->retorno_operacao;
-          $oRegistro->valor_efetivado  = 0;
-          $oRegistro->data_efetivacao  = "null";
+          $oRegistro->observacao           = $oArquivo->observacaoob;
+          $oRegistro->valor_efetivado      = 0;
+          $oRegistro->data_efetivacao      = "null";
           $oRegistro->codigo_retorno       = $this->getCodigoErro($oArquivo->retorno_operacao);
 
           $oDadosRetorno->registros[] = $oRegistro;
@@ -197,7 +199,8 @@ if (isset($lCancelado) && $lCancelado == '0') {
       <search regex="true"><![CDATA[(\$aRegistrosConfigurados\s*=\s*array\(\);)]]></search>
       <add>
         <![CDATA[$1
-    /* Inicio GeracaoArquivoOBN */    
+    /* Inicio GeracaoArquivoOBN */
+    $aMovimentosErroGRU = array();    
     $aRetornosPagamento = array();
     /* Fim GeracaoArquivoOBN */
     ]]>
@@ -224,6 +227,23 @@ if (isset($lCancelado) && $lCancelado == '0') {
         $oRegistro->codigo_movimento = (int)$oRegistro->codigo_movimento;
         $aMovimentosArquivo[]        = $oRegistro->codigo_movimento;
       }
+      
+      /*
+       * Verificamos se o movimento possui erro no retorno,
+       * para que ao processar a linha do tipo 2 verificar essa informação
+       */
+      foreach ($oRegistro->codigo_retorno as $sCodigoErro => $oDadoErroBanco) {
+      
+      	if ($sCodigoErro == '09') {
+      
+      		$oErroBancoGRU = new stdClass();
+      		$oErroBancoGRU->sequencia = $oDadoErroBanco->sequencia;
+      		$oErroBancoGRU->observacao = $oRegistro->observacao;
+      		$aMovimentosErroGRU[$oRegistro->codigo_movimento] = $oErroBancoGRU;
+      		 
+      	}
+      }
+      
       /* Fim GeracaoArquivoOBN */]]>
       </add>
     </operation>    
@@ -306,6 +326,32 @@ if (isset($lCancelado) && $lCancelado == '0') {
     </operation>
     
     <operation>        
+      <search regex="true" flag="U"><![CDATA[(foreach\s*\(\$oMovimentoRetorno\-\>codigo_retorno\s*as \$oDadoErroBanco\)\s*\{)(((\n*.*)*)\$oDaoEmpAgeDadosRetMovOcorrencia->e02_empagedadosret\s*=\s*\$iCodigoRetornoVinculado;)((\n*.*)*)(\$oDaoEmpAgeDadosRetMovOcorrencia->incluir\()]]></search>
+      <add>
+        <![CDATA[$sObservacaoRetorno = $oMovimentoRetorno->observacao;
+      $iErroBanco = $oDadoErroBanco->sequencia;
+
+      $1
+      
+        /*
+      	 * Verificamos se esta como nao processado nas linhas GRU
+      	 * Se estiver, setamos os campos de acordo com os dados de retorno nessas linhas
+      	 */
+      	if (key_exists($iCodigoMovimento, $aMovimentosErroGRU)) {
+      		
+      		$iErroBanco = $aMovimentosErroGRU[$iCodigoMovimento]->sequencia;
+      		$sObservacaoRetorno = $aMovimentosErroGRU[$iCodigoMovimento]->observacao;
+      		
+      	}
+     
+      $2
+        $oDaoEmpAgeDadosRetMovOcorrencia->e02_empagedadosretmov = $iCodigoMovimento;        
+        $oDaoEmpAgeDadosRetMovOcorrencia->e02_errobanco         = $iErroBanco; 
+        $7]]>
+      </add>
+    </operation>
+    
+    <operation>        
       <search regex="true"><![CDATA[(\$this->devolverMovimentoParaAgenda\(\s*\$iCodigoMovimentoNaoRetornado\s*\);)]]></search>
       <add>
         <![CDATA[
@@ -358,7 +404,7 @@ if (isset($lCancelado) && $lCancelado == '0') {
       if (trim($oMovimentoRetorno->observacao) != "") {
         $oDaoEmpAgeDadosRetMovOcorrenciaObservacao = db_utils::getDao("empagedadosretmovocorrenciaobservacao");
         $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->empagedadosretmovocorrencia = $oDaoEmpAgeDadosRetMovOcorrencia->e02_sequencial;
-        $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->observacao = "{$oMovimentoRetorno->observacao}";
+        $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->observacao = "{$sObservacaoRetorno}";
         $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->incluir();
         if ($oDaoEmpAgeDadosRetMovOcorrenciaObservacao->erro_status == "0") {
           throw new BusinessException("[Erro 6.1] Não foi possível salvar a ocorrência para o movimento {$iCodigoMovimento} - $oDaoEmpAgeDadosRetMovOcorrenciaObservacao->erro_msg");
