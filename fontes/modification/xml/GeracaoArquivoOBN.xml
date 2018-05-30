@@ -1191,7 +1191,7 @@ $1]]>
     <operation>
       <search regex="true"><![CDATA[(\$oStdLinhaTipoDois->codigo_movimentacao\s*=.*;)]]></search>
       <add>
-        <![CDATA[$oStdLinhaTipoDois->codigo_movimentacao = str_pad(number_format($oDadosLinha->getCodigoArquivoSistema(),0,',','.')."/".db_getsession("DB_anousu"), 11, "0", STR_PAD_LEFT);]]>
+        <![CDATA[$oStdLinhaTipoDois->codigo_movimentacao = str_pad($oDadosLinha->getCodigoArquivoSistema().db_getsession("DB_anousu"), 11, "0", STR_PAD_LEFT);]]>
       </add>
     </operation>
     
@@ -1291,7 +1291,7 @@ $1]]>
     $oStdLinhaTipoTres->campo_branco_um         = str_repeat(" ", 4);
     $oStdLinhaTipoTres->data_movimentacao       = "{$iDia}{$iMes}{$iAno}";
     $oStdLinhaTipoTres->codigo_ob           = str_pad($oDadosLinha->getCodigoMovimento(), 11, "0", STR_PAD_LEFT);
-    $oStdLinhaTipoTres->codigo_movimentacao     = str_pad(number_format($oDadosLinha->getCodigoArquivoSistema(),0,',','.')."/".db_getsession("DB_anousu"), 11, "0", STR_PAD_LEFT);
+    $oStdLinhaTipoTres->codigo_movimentacao     = str_pad($oDadosLinha->getCodigoArquivoSistema().db_getsession("DB_anousu"), 11, "0", STR_PAD_LEFT);
     $oStdLinhaTipoTres->codigo_instituicao      = $sUgGestao;
     $oStdLinhaTipoTres->codigo_agencia_bancaria_instituicao = $sAgenciaInstituicao;
     $oStdLinhaTipoTres->codigo_retorno_operacao     = str_repeat("0", 2);
@@ -2347,12 +2347,6 @@ $aInstituicoes = array_map(function($sValor) {
       </add>
     </operation>
     
-    <operation>
-      <search regex="true" flag="U"><![CDATA[(if\s*\(typeof\s*oLiquidacaoPendente(.*\n*)*function\s*efetuarPagamentos\s*\(.*\)\s*{)]]></search>
-      <add>
-        <![CDATA[/* $1 */]]>
-      </add>
-    </operation>
   </file>
   
   <file path='forms/db_frmmanutencaoagendaslip.php'>
@@ -2390,8 +2384,8 @@ $aInstituicoes = array_map(function($sValor) {
   </file>
   
   <file path='cai2_retornobanco002.php'>
-    <operation>
-      <search regex="true"><![CDATA[$dbwhere\s*=\s*("|')\s*e75_codret\s*=.*\$retorno.*e75_ativo is true\s*and\s*e90_cancelado is false\s*("|')\s*;]]></search>
+    <!-- modificacao implementada <operation>
+      <search regex="true"><![CDATA[\$dbwhere\s*=\s*("|')\s*e75_codret\s*=.*\$retorno.*e75_ativo is true\s*and\s*e90_cancelado is false\s*("|')\s*;]]></search>
       <add>
         <![CDATA[$dbwhere = " e80_instit = " . db_getsession("DB_instit") . " and e75_codret = ".$retorno . " and e75_ativo is true and (case when empageconfgera.e90_codmov is not null then empageconfgera.e90_cancelado is false else true end) ";]]>
       </add>
@@ -2403,7 +2397,7 @@ $aInstituicoes = array_map(function($sValor) {
         <![CDATA[e76_codret,
                                                e81_codmov as e86_codmov,]]>
       </add>
-    </operation> 
+    </operation> --> 
 
     <operation>
       <search regex="true"><![CDATA[(fc_valorretencaomov.*vlrretencao\s*,)]]></search>

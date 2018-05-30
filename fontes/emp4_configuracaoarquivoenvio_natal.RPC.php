@@ -169,7 +169,8 @@ try {
   		$aDetalhes        = $oParam->aDetalhes;
   		$iTipoTransmissao = $oParam->iTipoTransmissao;
       $lFatura          = $oParam->fatura;
-
+      $nTotalFaturas = 0;
+      
   		db_inicio_transacao();
 
   		$oDaoEmpAgeMovTipoTransmissao = db_utils::getDao('empagemovtipotransmissao');
